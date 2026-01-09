@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IDK Lamp | Honest AI Interface</title>
+  <style>
+    :root {
+      --bg-color: #0a0a0c;
+      --text-main: #e0e0e0;
+      --text-sub: #7a7a85;
+
+      --lamp-off: #2a2a35;
+      --lamp-on: #00d2ff;
+
+      --font-serif: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", serif;
+      --font-sans: "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-serif);
+      margin: 0;
+      line-height: 2.4;
+      letter-spacing: 0.08em;
+    }
+
+    /* --- Link Base (global) --- */
+    a {
+      color: var(--text-sub);
+      text-decoration: none;
+      transition: color 0.25s ease, border-color 0.25s ease;
+    }
+    /* hoverは全リンク共通で「静か」 */
+    a:hover {
+      color: var(--lamp-on);
+    }
+    .link-path {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      letter-spacing: 0.14em;
+      display: inline-block;
+      border-bottom: 1px solid rgba(122, 122, 133, 0.6);
+      padding-bottom: 2px;
+    }
+    .link-footer {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      opacity: 0.6;
+      border-bottom: 1px solid rgba(122, 122, 133, 0.4);
+      padding-bottom: 2px;
+    }
+    
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section { padding: 100px 0; }
+
+    .lamp-icon {
+      width: 12px;
+      height: 12px;
+      background-color: var(--lamp-off);
+      border-radius: 50%;
+      margin: 0 auto 40px;
+      transition: all 1.5s ease-in-out;
+    }
+
+    .lamp-active {
+      background-color: var(--lamp-on);
+      box-shadow: 0 0 20px var(--lamp-on), 0 0 60px rgba(0, 210, 255, 0.4);
+      animation: breathe 6s infinite ease-in-out;
+    }
+
+    @keyframes breathe {
+      0% { opacity: 0.6; transform: scale(0.95); }
+      50% { opacity: 1.0; transform: scale(1.05); }
+      100% { opacity: 0.6; transform: scale(0.95); }
+    }
+
+    h1, h2, h3 { font-weight: normal; margin: 0; }
+
+    .section-label {
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      display: block;
+      margin-bottom: 24px;
+      opacity: 0.5;
+    }
+
+    #hero {
+      text-align: center;
+      padding: 160px 0 100px;
+      min-height: 50vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .hero-copy {
+      font-size: 2.6rem;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      letter-spacing: 0.1em;
+    }
+
+    .hero-sub {
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      font-family: var(--font-sans);
+      letter-spacing: 0.15em;
+    }
+
+    .message-p {
+      font-size: 1.05rem;
+      margin-bottom: 2.5rem;
+      text-align: justify;
+      text-justify: inter-ideograph;
+    }
+
+    strong {
+      font-weight: bold;
+      color: #fff;
+      font-size: 1.2rem;
+      display: block;
+      margin-bottom: 1.5rem;
+    }
+
+    /* --- Paths (links) --- */
+    .paths {
+      margin-top: 12px;
+      border-top: 1px solid #1a1a20;
+      padding-top: 36px;
+    }
+
+    .paths-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .paths-list li {
+      margin: 0 0 22px 0;
+    }
+
+    .paths-list a {
+      font-family: var(--font-sans);
+      letter-spacing: 0.14em;
+      display: inline-block;
+      border-bottom: 1px solid rgba(122, 122, 133, 0.6);
+      padding-bottom: 2px;
+    }
+
+    .paths-desc {
+      margin: 6px 0 0 0;
+      color: var(--text-sub);
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      font-family: var(--font-sans);
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      padding: 80px 0 60px;
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      border-top: 1px solid #1a1a20;
+      margin-top: 60px;
+    }
+
+    .footer-link {
+      display: inline-block;
+      margin-top: 16px;
+      border-bottom: 1px solid var(--text-sub);
+      padding-bottom: 2px;
+    }
+
+    @media (max-width: 600px) {
+      .hero-copy { font-size: 1.8rem; line-height: 1.5; }
+      #hero { padding: 100px 0 60px; }
+      .message-p { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <section id="hero">
+    <div class="container">
+      <div class="lamp-icon lamp-active"></div>
+
+      <h1 class="hero-copy">
+        AIに、<br>
+        「分かりません」ランプを。
+      </h1>
+      <p class="hero-sub">idk-lamp<br>(I Don’t Know Lamp)</p>
+    </div>
+  </section>
+
+  <section id="concept">
+    <div class="container">
+      <span class="section-label">Concept</span>
+      <p class="message-p">
+        <strong>なんでも答えることが、知性だろうか。</strong>
+      </p>
+      <p class="message-p">
+        本当に賢いパートナーとは、<br>
+        自分の限界を知り、素直に助けを求められる存在のことだ。<br>
+      </p>
+      <p class="message-p">
+        完璧な正解よりも、正直な「分からない」を。<br>
+        その小さな隙間にこそ、人間とAIの信頼関係は生まれる。
+      </p>
+    </div>
+  </section>
+
+  <section id="mechanism">
+    <div class="container">
+      <span class="section-label">Mechanism</span>
+      <p class="message-p">
+        idk-lamp は、<br>
+        エラーを知らせる警告灯ではない。
+      </p>
+      <p class="message-p">
+        AIがふと立ち止まり、<br>
+        「ここから先は、あなたの出番です」と<br>
+        人間を頼る、静かなバトンパスの合図だ。
+      </p>
+      <p class="message-p">
+        それは、機械が人間に向ける、<br>
+        最も誠実なリスペクトの形かもしれない。
+      </p>
+    </div>
+  </section>
+
+  <section id="philosophy">
+    <div class="container">
+      <span class="section-label">Philosophy</span>
+      <p class="message-p">
+        <strong>計算結果よりも、バトン。</strong>
+      </p>
+      <p class="message-p">
+        人間に判断を委ねるという「振る舞い」の設計。
+      </p>
+      <p class="message-p">
+        ランプを灯す回路を作ろう。<br>
+        それが、AIを社会に放つ、作り手である我々の最後の責任だ。
+      </p>
+
+      <div class="paths">
+        <ul class="paths-list">
+          <li>
+            <a href="signal" class="link-path" target="_blank">I Don’t Know Signal</a>
+            <p class="paths-desc">なぜ止め、どう振る舞うか</p>
+          </li>
+          <li>
+            <a href="principles" class="link-path" class="link-path" target="_blank">Design Principles</a>
+            <p class="paths-desc">境界、判断保留、ゲートの設計</p>
+          </li>
+          <li>
+            <a href="https://vcdesign.org/" class="link-path" target="_blank">Origins</a>
+            <p class="paths-desc">VCDesign / 背景にある文脈</p>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+    <footer>
+        <div class="container">
+            <a href="#" class="link-footer">Designed as a boundary artifact.</a>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDK Lamp | Honest AI Interface</title>
+    <style>
+        /* --- Base Settings --- */
+        :root {
+            --bg-color: #0a0a0c;
+            --text-main: #e0e0e0;
+            --text-sub: #7a7a85;
+            
+            /* Signal Blue: Intelligence and Silence */
+            --lamp-off: #2a2a35;
+            --lamp-on: #00d2ff; 
+
+            /* Adjusted font stack for English elegance */
+            --font-serif: "Georgia", "Times New Roman", serif;
+            --font-sans: "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-serif);
+            margin: 0;
+            line-height: 2.0; /* Adjusted for English readability */
+            letter-spacing: 0.04em; /* Adjusted for English readability */
+        }
+
+        a { color: var(--text-main); text-decoration: none; transition: 0.3s; }
+        a:hover { color: var(--lamp-on); opacity: 0.8; }
+
+        /* --- Layout --- */
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        section {
+            padding: 100px 0;
+        }
+
+        /* --- Components --- */
+        .lamp-icon {
+            width: 12px;
+            height: 12px;
+            background-color: var(--lamp-off);
+            border-radius: 50%;
+            margin: 0 auto 40px;
+            transition: all 1.5s ease-in-out;
+        }
+
+        .lamp-active {
+            background-color: var(--lamp-on);
+            box-shadow: 0 0 20px var(--lamp-on), 0 0 60px rgba(0, 210, 255, 0.4);
+            animation: breathe 6s infinite ease-in-out;
+        }
+
+        @keyframes breathe {
+            0% { opacity: 0.6; transform: scale(0.95); }
+            50% { opacity: 1.0; transform: scale(1.05); }
+            100% { opacity: 0.6; transform: scale(0.95); }
+        }
+
+        h1, h2, h3 { font-weight: normal; margin: 0; }
+        
+        .section-label {
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            display: block;
+            margin-bottom: 24px;
+            opacity: 0.5;
+        }
+
+        /* --- Hero Section --- */
+        #hero {
+            text-align: center;
+            padding: 160px 0 100px;
+            min-height: 50vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .hero-copy {
+            font-size: 2.6rem;
+            line-height: 1.3;
+            margin-bottom: 24px;
+            letter-spacing: 0.02em;
+        }
+        
+        .hero-sub {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            font-family: var(--font-sans);
+            letter-spacing: 0.15em;
+        }
+
+        /* --- Content Typography --- */
+        .message-p {
+            font-size: 1.1rem;
+            margin-bottom: 2.5rem;
+            /* English doesn't need justify as strictly as Japanese */
+            text-align: left; 
+        }
+        
+        strong {
+            font-weight: bold;
+            color: #fff;
+            font-size: 1.3rem;
+            display: block;
+            margin-bottom: 1.5rem;
+            line-height: 1.4;
+        }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 80px 0 60px;
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            border-top: 1px solid #1a1a20;
+            margin-top: 60px;
+        }
+        
+        .footer-link {
+            display: inline-block;
+            margin-top: 16px;
+            border-bottom: 1px solid var(--text-sub);
+            padding-bottom: 2px;
+        }
+
+        @media (max-width: 600px) {
+            .hero-copy { font-size: 2.0rem; line-height: 1.4; }
+            #hero { padding: 100px 0 60px; }
+        }
+    </style>
+</head>
+<body>
+
+    <section id="hero">
+        <div class="container">
+            <div class="lamp-icon lamp-active"></div>
+            
+            <h1 class="hero-copy">
+                Give AI an<br>
+                "I Don't Know" Lamp.
+            </h1>
+            <p class="hero-sub">I Don't Know Lamp</p>
+        </div>
+    </section>
+
+    <section id="concept">
+        <div class="container">
+            <span class="section-label">Concept</span>
+            <p class="message-p">
+                <strong>Is answering everything truly intelligent?</strong>
+            </p>
+            <p class="message-p">
+                A truly wise partner knows its limits<br>
+                and honestly seeks help when needed.<br>
+            </p>
+            <p class="message-p">
+                Choose an honest "I don't know" over a perfect answer.<br>
+                It is in that small gap that trust between humans and AI is born.
+            </p>
+        </div>
+    </section>
+
+    <section id="mechanism">
+        <div class="container">
+            <span class="section-label">Mechanism</span>
+            <p class="message-p">
+                The idk-lamp is not a warning light for errors.
+            </p>
+            <p class="message-p">
+                It is a quiet signal of a baton pass—<br>
+                where AI pauses to say, "From here, it is your turn,"<br>
+                and relies on the human.
+            </p>
+            <p class="message-p">
+                This may be the most sincere form of respect<br>
+                a machine can show a human.
+            </p>
+        </div>
+    </section>
+
+    <section id="philosophy">
+        <div class="container">
+            <span class="section-label">Philosophy</span>
+            <p class="message-p">
+                <strong>The Baton, Not Just the Calculation.</strong>
+            </p>
+            <p class="message-p">
+                It is about designing the behavior<br>
+                of yielding judgment to humans.
+            </p>
+            <p class="message-p">
+                Let us build the circuit that lights the lamp.<br>
+                That is our final responsibility as creators releasing AI into society.
+            </p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <a href="#" class="footer-link">Designed as a boundary artifact.</a>
+        </div>
+    </footer>
+
+</body>
+</html>
