@@ -24,6 +24,29 @@
       margin: 0;
       line-height: 2.4;
       letter-spacing: 0.08em;
+      position: relative; /* 言語リンクの配置基準 */
+    }
+
+    /* --- Language Switcher (Top Right) --- */
+    .lang-switch {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      z-index: 100;
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+    }
+    .lang-switch a {
+      color: var(--text-sub);
+      text-decoration: none;
+      padding-bottom: 2px;
+      border-bottom: 1px solid transparent;
+      transition: all 0.25s ease;
+    }
+    .lang-switch a:hover {
+      color: var(--lamp-on);
+      border-bottom-color: var(--lamp-on);
     }
 
     /* --- Link Base (global) --- */
@@ -187,10 +210,16 @@
       .hero-copy { font-size: 1.8rem; line-height: 1.5; }
       #hero { padding: 100px 0 60px; }
       .message-p { text-align: left; }
+      .lang-switch { top: 20px; right: 20px; } /* SP調整 */
     }
   </style>
 </head>
 <body>
+
+  <div class="lang-switch">
+    <a href="/">English</a>
+  </div>
+
   <section id="hero">
     <div class="container">
       <div class="lamp-icon lamp-active"></div>
@@ -256,7 +285,7 @@
       <div class="paths">
         <ul class="paths-list">
           <li>
-            <a href="demo/" class="link-path" target="_blank">Try the signal</a>
+            <a href="/demo/" class="link-path" target="_blank">Try the signal</a>
             <p class="paths-desc">「分かりません」が、どう見えるか</p>
           </li>
           <li>
@@ -278,14 +307,7 @@
             </a>
             <p class="paths-desc">AIが判断を止める条件を設計する</p>
           </li>
-<!--          
-          <li>
-            <a href="https://vcdesign.org/" class="link-path" target="_blank">Origins</a>
-            <p class="paths-desc">VCDesign / 背景にある文脈</p>
-          </li>
-        </ul>
--->
-      </div>
+</div>
     </div>
   </section>
 

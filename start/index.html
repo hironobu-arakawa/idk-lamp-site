@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Start | idk-lamp</title>
+  <meta name="description" content="Start page to understand and install idk-lamp in 5 minutes. Connects Demo → Install → Gate in a single workflow." />
+  <style>
+    :root{
+      --bg: #0b0f14;
+      --fg: #e8eef6;
+      --muted: rgba(232,238,246,.72);
+      --dim: rgba(232,238,246,.12);
+      --card: rgba(255,255,255,.04);
+      --card2: rgba(255,255,255,.06);
+      --line: rgba(255,255,255,.10);
+      --accent: #9ad5ff;
+      --accent2: #b8ffa6;
+      --warn: #ffd36a;
+      --radius: 16px;
+      --shadow: 0 10px 40px rgba(0,0,0,.35);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      background: radial-gradient(1000px 600px at 20% 10%, rgba(154,213,255,.18), transparent 60%),
+                  radial-gradient(900px 600px at 80% 0%, rgba(184,255,166,.12), transparent 55%),
+                  radial-gradient(900px 700px at 60% 90%, rgba(255,211,106,.10), transparent 60%),
+                  var(--bg);
+      color: var(--fg);
+      line-height: 1.55;
+    }
+    a{color: var(--accent); text-decoration: none}
+    a:hover{text-decoration: underline}
+    .wrap{max-width: 980px; margin: 0 auto; padding: 28px 18px 64px}
+    header{
+      display:flex; gap:14px; align-items:center; justify-content:space-between;
+      padding: 14px 0 22px;
+    }
+    .brand{
+      display:flex; gap:12px; align-items:center;
+    }
+    .dot{
+      width:14px; height:14px; border-radius:999px;
+      background: radial-gradient(circle at 30% 30%, #fff, rgba(255,255,255,.12) 35%, rgba(255,255,255,.02) 60%),
+                  linear-gradient(135deg, rgba(154,213,255,.90), rgba(184,255,166,.70));
+      box-shadow: 0 0 22px rgba(154,213,255,.28), 0 0 30px rgba(184,255,166,.14);
+      border: 1px solid rgba(255,255,255,.18);
+    }
+    .title{
+      display:flex; flex-direction:column;
+    }
+    .title b{font-size: 14px; letter-spacing:.2px}
+    .title span{font-size: 12px; color: var(--muted)}
+    nav{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--fg);
+      font-size: 12px;
+    }
+    .pill:hover{background: rgba(255,255,255,.06); text-decoration:none}
+    .hero{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 16px;
+      align-items:stretch;
+      margin-top: 8px;
+    }
+    @media (max-width: 880px){
+      .hero{grid-template-columns: 1fr}
+      nav{justify-content:flex-start}
+    }
+    .card{
+      background: linear-gradient(180deg, var(--card), rgba(255,255,255,.02));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px 18px;
+    }
+    h1{margin: 0 0 10px; font-size: 26px; letter-spacing:.2px}
+    p{margin: 10px 0}
+    .muted{color: var(--muted)}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+    @media (max-width: 880px){
+      .grid{grid-template-columns: 1fr}
+    }
+    .step{
+      padding: 14px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+    }
+    .kicker{
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: .2px;
+    }
+    .step b{display:block; margin-top: 6px; font-size: 14px}
+    .step p{margin: 8px 0 0; font-size: 13px}
+    .btnrow{display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--fg);
+      font-size: 13px;
+      text-decoration:none;
+    }
+    .btn:hover{background: rgba(255,255,255,.07); text-decoration:none}
+    .btn.primary{
+      border-color: rgba(154,213,255,.45);
+      background: linear-gradient(180deg, rgba(154,213,255,.16), rgba(255,255,255,.04));
+    }
+    .btn.good{
+      border-color: rgba(184,255,166,.45);
+      background: linear-gradient(180deg, rgba(184,255,166,.14), rgba(255,255,255,.04));
+    }
+    .btn.warn{
+      border-color: rgba(255,211,106,.55);
+      background: linear-gradient(180deg, rgba(255,211,106,.14), rgba(255,255,255,.04));
+    }
+    section{margin-top: 16px}
+    h2{margin: 0 0 10px; font-size: 18px}
+    h3{margin: 18px 0 8px; font-size: 15px}
+    .code{
+      margin-top: 10px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.35);
+      overflow:auto;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.45;
+      white-space: pre;
+    }
+    .callout{
+      border: 1px solid rgba(154,213,255,.30);
+      background: linear-gradient(180deg, rgba(154,213,255,.10), rgba(255,255,255,.03));
+      padding: 12px 12px;
+      border-radius: 14px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .faq{
+      margin-top: 10px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+    details{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin: 10px 0;
+    }
+    summary{
+      cursor:pointer;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    details p{margin: 8px 0 0; color: var(--muted); font-size: 13px}
+    footer{
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .small{font-size: 12px}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="dot" aria-hidden="true"></div>
+        <div class="title">
+          <b>idk-lamp</b>
+          <span>Start • Demo → Install → Gate</span>
+        </div>
+      </div>
+      <nav>
+        <a class="pill" href="/">Concept</a>
+        <a class="pill" href="/demo/">Demo</a>
+        <a class="pill" href="https://github.com/hironobu-arakawa/idk-lamp" target="_blank" rel="noreferrer">Repo: idk-lamp</a>
+        <a class="pill" href="https://github.com/hironobu-arakawa/predictability-gate" target="_blank" rel="noreferrer">Repo: predictability-gate</a>
+      </nav>
+    </header>
+
+    <div class="hero">
+      <div class="card">
+        <h1>idk-lamp in 5 Minutes</h1>
+        <p class="muted">
+          The idk-lamp is a quiet signal that lights up when AI <em>should not</em> make a decision.<br/>
+          It is not an error or a failure. It is a "boundary signal" to return judgment to humans.
+        </p>
+
+        <div class="grid" role="list">
+          <div class="step" role="listitem">
+            <div class="kicker">Step 1</div>
+            <b>Experience It</b>
+            <p>Check the lighting, states, and atmosphere from the theme list.</p>
+            <div class="btnrow">
+              <a class="btn primary" href="/demo/">Open Demo</a>
+            </div>
+          </div>
+
+          <div class="step" role="listitem">
+            <div class="kicker">Step 2</div>
+            <b>Install</b>
+            <p>Just paste the CDN link and place the tag. Ready to drop in.</p>
+            <div class="btnrow">
+              <a class="btn good" href="#install">Go to Install</a>
+            </div>
+          </div>
+
+          <div class="step" role="listitem">
+            <div class="kicker">Step 3</div>
+            <b>Define the Boundary</b>
+            <p>Define "when not to let AI decide" using the Gate.</p>
+            <div class="btnrow">
+              <a class="btn warn" href="#gate">Go to Gate</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout">
+          Integration Concept: The <b>UI (idk-lamp)</b> and the <b>Operational Gate (predictability-gate)</b> have different roles.<br/>
+          That is why this site unifies only the <b>workflow</b>.
+        </div>
+
+        <div class="btnrow">
+          <a class="btn" href="/">Read Concept</a>
+          <a class="btn" href="/demo/">Try Demo</a>
+          <a class="btn" href="https://github.com/hironobu-arakawa/idk-lamp" target="_blank" rel="noreferrer">idk-lamp Repo</a>
+          <a class="btn" href="https://github.com/hironobu-arakawa/predictability-gate" target="_blank" rel="noreferrer">predictability-gate Repo</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Role of this Page</h2>
+        <p class="muted">
+          This is not a "manual", but a page to align the <b>implementation order</b>.
+        </p>
+
+        <h3>What you get</h3>
+        <p class="muted small">
+          • Instantly understand "what the signal is" via Demo<br/>
+          • "Ready to place" via CDN<br/>
+          • "Consistent trigger points" via Gate
+        </p>
+
+        <h3>What is not here</h3>
+        <p class="muted small">
+          • Detailed Philosophy (→ Concept)<br/>
+          • Full Theme Guide (→ Demo)<br/>
+          • Full Specs & Implementation (→ Repos)
+        </p>
+      </div>
+    </div>
+
+    <section id="install" class="card">
+      <h2>Install: Drop-in (CDN)</h2>
+      <p class="muted">
+        Minimal setup to "just try it out". Ready for sites or PoCs.
+      </p>
+
+      <h3>1) Load CDN</h3>
+      <div class="code">&lt;script src="https://idk-lamp.org/dist/idk-lamp.min.js"&gt;&lt;/script&gt;</div>
+
+      <h3>2) Place the Tag</h3>
+      <div class="code">&lt;idk-lamp state="idk" label="Need human decision"&gt;&lt;/idk-lamp&gt;</div>
+
+      <h3>3) Adjust look with CSS Variables (Example)</h3>
+      <div class="code">:root {
+  --idk-lamp-size: 84px;
+  --idk-lamp-glow: 1;
+  --idk-lamp-label-opacity: 0.9;
+}</div>
+
+      <p class="muted small">
+        * Check the <a href="https://github.com/hironobu-arakawa/idk-lamp" target="_blank" rel="noreferrer">idk-lamp repository</a> for the latest specs on state, theme, and variables.
+      </p>
+    </section>
+
+    <section id="demo" class="card">
+      <h2>Demo: Experience It</h2>
+      <p class="muted">
+        First, choose what fits your product. Compare the lighting atmosphere in the theme list.
+      </p>
+      <div class="btnrow">
+        <a class="btn primary" href="/demo/">Open Demo</a>
+        <a class="btn" href="https://github.com/hironobu-arakawa/idk-lamp" target="_blank" rel="noreferrer">View Themes/Specs</a>
+      </div>
+    </section>
+
+    <section id="gate" class="card">
+      <h2>Gate: Define the Boundary</h2>
+      <p class="muted">
+        idk-lamp is a "signal".<br/>
+        For the signal to work, you first need to define <b>when to light it (conditions for AI not to decide)</b>.
+      </p>
+
+      <h3>What predictability-gate covers</h3>
+      <p class="muted small">
+        • Translating "uncertainty" in prediction/inference/generation into operational decisions<br/>
+        • Defining conditions for deferring judgment (who checks what and when)<br/>
+        • Establishing that "stopping" is a normal operation, not an error
+      </p>
+
+      <div class="btnrow">
+        <a class="btn warn" href="https://github.com/hironobu-arakawa/predictability-gate" target="_blank" rel="noreferrer">Read predictability-gate</a>
+      </div>
+
+      <div class="callout">
+        Recommendation: When the Gate returns <b>STOP/DEFER</b>, light up <b>state="idk"</b> in the UI.<br/>
+        This creates a consistent experience of "Stopping → Returning to Human".
+      </div>
+    </section>
+
+    <section class="card faq">
+      <h2>FAQ</h2>
+
+      <details>
+        <summary>Is this a "warning light"?</summary>
+        <p>
+          No. idk-lamp is not for indicating "danger", but a signal to <b>return judgment</b>.<br/>
+          It visualizes the "boundary of responsibility" on the UI, rather than replacing alerts.
+        </p>
+      </details>
+
+      <details>
+        <summary>Why keep Demo, Repo, and Gate separate?</summary>
+        <p>
+          Because their roles differ.<br/>
+          Demo is for experience, idk-lamp repo is for artifacts, and predictability-gate repo is for operational judgment.<br/>
+          Unifying only the workflow here prevents the concept from breaking.
+        </p>
+      </details>
+
+      <details>
+        <summary>Where should I start?</summary>
+        <p>
+          If unsure, go <b>Demo → Install (here) → Gate</b>.<br/>
+          Making it "placeable" first brings the Gate discussion into reality.
+        </p>
+      </details>
+    </section>
+
+    <footer>
+      <div>
+        <div>idk-lamp.org</div>
+        <div class="small">A boundary signal for “I don’t know” decisions.</div>
+      </div>
+      <div class="small">
+        <a href="/">Concept</a> ・
+        <a href="/demo/">Demo</a> ・
+        <a href="https://github.com/hironobu-arakawa/idk-lamp" target="_blank" rel="noreferrer">idk-lamp</a> ・
+        <a href="https://github.com/hironobu-arakawa/predictability-gate" target="_blank" rel="noreferrer">predictability-gate</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

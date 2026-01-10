@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Principles | idk-lamp</title>
+  <style>
+    /* --- Shared Styles --- */
+    :root {
+      --bg-color: #0a0a0c;
+      --text-main: #e0e0e0;
+      --text-sub: #7a7a85;
+      --lamp-off: #2a2a35;
+      --lamp-on: #00d2ff;
+      /* Font stack adjusted for English context */
+      --font-serif: "Times New Roman", "Yu Mincho", "Hiragino Mincho ProN", serif;
+      --font-sans: "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-serif);
+      margin: 0;
+      line-height: 2.2;
+      letter-spacing: 0.04em; /* Slightly tighter for English */
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* --- Link Base (global) --- */
+    a {
+      color: var(--text-sub);
+      text-decoration: none;
+      transition: color 0.25s ease, border-color 0.25s ease;
+    }
+    a:hover {
+      color: var(--lamp-on);
+    }
+    .link-nav {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+    .link-footer {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      opacity: 0.6;
+      border-bottom: 1px solid rgba(122, 122, 133, 0.4);
+      padding-bottom: 2px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 24px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* --- Header / Intro --- */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 60px;
+    }
+
+    h1 {
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin: 0;
+      opacity: 0.7;
+    }
+
+    .intro-block {
+      text-align: center;
+      margin-bottom: 80px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 60px;
+    }
+
+    .intro-p {
+      font-size: 1.0rem;
+      line-height: 2.4;
+      margin-bottom: 0;
+    }
+
+    /* --- Grid Layout --- */
+    .principles-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 60px;
+      margin-bottom: 80px;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* --- Symbols (Abstract Geometry) --- */
+    .symbol {
+      height: 24px;
+      margin-bottom: 24px;
+      border-color: var(--lamp-on);
+      opacity: 0.8;
+      display: inline-block;
+    }
+
+    /* Boundary: Vertical Line */
+    .sym-boundary {
+      border-left: 2px solid var(--lamp-on);
+      width: 0;
+    }
+
+    /* Hold: Double Line (Pause) */
+    .sym-hold {
+      border-left: 2px solid var(--lamp-on);
+      border-right: 2px solid var(--lamp-on);
+      width: 6px;
+    }
+
+    /* Gate: Brackets */
+    .sym-gate {
+      border-left: 2px solid var(--lamp-on);
+      border-right: 2px solid var(--lamp-on);
+      width: 14px;
+      position: relative;
+    }
+    /* Horizontal lines for brackets */
+    .sym-gate::before, .sym-gate::after {
+        content: '';
+        position: absolute;
+        width: 4px;
+        height: 2px;
+        background-color: var(--lamp-on);
+        left: 0;
+    }
+    .sym-gate::before { top: 0; }
+    .sym-gate::after { bottom: 0; }
+    .sym-gate::before { box-shadow: 10px 0 0 var(--lamp-on); } /* Right top */
+    .sym-gate::after { box-shadow: 10px 0 0 var(--lamp-on); } /* Right bottom */
+
+
+    .col-label {
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      color: var(--lamp-on);
+      margin-bottom: 32px;
+      display: block;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    p {
+      font-size: 0.95rem;
+      margin: 0 0 1.5rem 0;
+      text-align: left;
+    }
+
+    strong {
+      font-weight: bold;
+      color: #fff;
+      border-bottom: 1px solid rgba(0, 210, 255, 0.3);
+    }
+
+    /* --- Outro & Footer --- */
+    .outro-block {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding-top: 40px;
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    .footer-note {
+      display: block;
+      margin-bottom: 20px;
+      opacity: 0.6;
+    }
+
+    /* --- Mobile Responsive --- */
+    @media (max-width: 900px) {
+      body { display: block; padding-top: 60px; }
+      .principles-grid { grid-template-columns: 1fr; gap: 60px; }
+      .column { border-left: 1px solid rgba(255,255,255,0.1); padding-left: 24px; }
+      .symbol { display: none; }
+      .intro-block, .outro-block { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Design Principles</h1>
+      <a href="/" class="link-nav">← Back</a>
+    </header>
+
+    <div class="intro-block">
+      <p class="intro-p">
+        This page is not an implementation guide for the idk-lamp.<br>
+        When designing the idk-lamp, the core question is:<br>
+        <strong>How do we determine where to stop the decision?</strong><br>
+        This page offers a perspective for that inquiry.
+      </p>
+    </div>
+
+    <div class="principles-grid">
+      
+      <div class="column">
+        <div class="symbol sym-boundary"></div>
+        <span class="col-label">01. Boundary</span>
+        
+        <p>A boundary is not a line<br>dividing "can" from "cannot".</p>
+        <p>
+          It is the position that separates<br>
+          <strong>who accepts the responsibility for the result.</strong>
+        </p>
+        <p>
+          AI can execute many judgments.<br>
+          However, it cannot become the subject<br>
+          that bears the responsibility.
+        </p>
+        <p>
+          As judgment proceeds,<br>
+          responsibility moves somewhere.<br>
+          The boundary handled by the idk-lamp is<br>
+          <strong>the point where the destination of responsibility shifts.</strong>
+        </p>
+      </div>
+
+      <div class="column">
+        <div class="symbol sym-hold"></div>
+        <span class="col-label">02. Decision Hold</span>
+        
+        <p>Holding judgment is not<br>abandoning it.</p>
+        <p>
+          It is<br>
+          <strong>explicitly stating the state of not being able to accept responsibility yet.</strong>
+        </p>
+        <p>
+          The judgment remains undetermined.<br>
+          The process has not failed.<br>
+          Nor does it proceed automatically.
+        </p>
+        <p>
+          Decision Hold is not<br>
+          an action of "stopping",<br>
+          but a <strong>design of a state.</strong><br>
+          When this state is established,<br>
+          the idk-lamp lights up.
+        </p>
+      </div>
+
+      <div class="column">
+        <div class="symbol sym-gate"></div>
+        <span class="col-label">03. Gate</span>
+        
+        <p>
+          The gate is not<br>
+          a device to stop judgment.<br>
+          Nor is it a checklist<br>
+          to evaluate if passing conditions are met.
+        </p>
+        <p>
+          The gate verifies only one thing:<br>
+          <strong>How far is it safe for this judgment to proceed?</strong>
+        </p>
+        <p>
+          Passing through does not mean<br>
+          automatic execution.<br>
+          The failure to pass is, in itself,<br>
+          critical information.
+        </p>
+        <p>
+          The gate does not<br>
+          evaluate the correctness of the judgment.<br>
+          It is placed as a mechanism<br>
+          <strong>to ensure the judgment is entrusted to the right entity.</strong>
+        </p>
+      </div>
+
+    </div>
+
+    <div class="outro-block">
+      <p class="intro-p">
+        The idk-lamp is not<br>
+        a design for stopping decisions.<br>
+        It is a design for<br>
+        <strong>returning decisions to the place where they can be properly undertaken.</strong>
+      </p>
+    </div>
+
+    <footer>
+      <span class="footer-note">
+        This page is not an implementation specification. It provides no manuals or flowcharts.<br>
+        It leaves room for the reader to think within their own context.<br>
+        If necessary, this design may be extended under a different name or form.<br>
+        For now, this is sufficient.
+      </span>
+        <div class="container">
+            <a href="https://vcdesign.org/boa/" class="link-footer" target="_blank">Designed as a boundary artifact.</a>
+        </div>
+    </footer>
+  </div>
+
+</body>
+</html>
