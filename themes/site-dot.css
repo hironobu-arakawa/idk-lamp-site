@@ -1,0 +1,51 @@
+/* themes/site-dot.css (scoped)
+   Scoped Theme: site-dot (tiny cyan dot used on idk-lamp.org)
+   Usage:
+     <link rel="stylesheet" href="https://idk-lamp.org/themes/site-dot.css">
+     <idk-lamp theme="site-dot" state="idk"></idk-lamp>
+
+   Notes:
+   - This theme uses ::part(lamp). The component must expose `part="lamp"`
+     on the inner lamp element.
+*/
+
+:root {
+  /* idk-lamp.org palette */
+  --idk-site-lamp-off: #2a2a35;
+  --idk-site-lamp-on:  #00d2ff;
+}
+
+idk-lamp[theme="site-dot"] {
+  --size: 12px;
+  --border-width: 0px;
+  --border-color: transparent;
+
+  /* Treat active as "off" and idk as "on" */
+  --color-active: var(--idk-site-lamp-off);
+  --color-idk:    var(--idk-site-lamp-on);
+}
+
+idk-lamp[theme="site-dot"]::part(lamp) {
+  background-image: none !important;
+}
+
+idk-lamp[theme="site-dot"][state="idk"]::part(lamp) {
+  box-shadow:
+    0 0 20px var(--idk-site-lamp-on),
+    0 0 60px rgba(0, 210, 255, 0.4);
+  animation: idk-site-breathe 6s infinite ease-in-out;
+}
+
+@keyframes idk-site-breathe {
+  0%   { opacity: 0.6; transform: scale(0.95); }
+  50%  { opacity: 1.0; transform: scale(1.05); }
+  100% { opacity: 0.6; transform: scale(0.95); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  idk-lamp[theme="site-dot"][state="idk"]::part(lamp) {
+    animation: none;
+    transform: none;
+    opacity: 0.9;
+  }
+}
