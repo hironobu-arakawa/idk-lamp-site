@@ -1,161 +1,14 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Signal Protocol | idk-lamp</title>
-  <style>
-    /* --- Shared Styles --- */
-    :root {
-      --bg-color: #0a0a0c;
-      --text-main: #e0e0e0;
-      --text-sub: #7a7a85;
-      --lamp-off: #2a2a35;
-      --lamp-on: #00d2ff;
-      --font-serif: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", serif;
-      --font-sans: "Helvetica Neue", Arial, sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      font-family: var(--font-serif);
-      margin: 0;
-      line-height: 2.2;
-      letter-spacing: 0.06em;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    /* --- Link Base (global) --- */
-    a {
-      color: var(--text-sub);
-      text-decoration: none;
-      transition: color 0.25s ease, border-color 0.25s ease;
-    }
-    /* hoverは全リンク共通で「静か」 */
-    a:hover {
-      color: var(--lamp-on);
-    }
-    .link-nav {
-      font-family: var(--font-sans);
-      font-size: 0.75rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      opacity: 0.7;
-    }
-    .link-footer {
-      font-family: var(--font-sans);
-      font-size: 0.75rem;
-      opacity: 0.6;
-      border-bottom: 1px solid rgba(122, 122, 133, 0.4);
-      padding-bottom: 2px;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 60px 24px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    /* --- Lamp Icon (Global) --- */
-    .lamp-wrapper {
-        text-align: center;
-        margin-bottom: 60px; /* ランプと本文の距離 */
-    }
-
-    .lamp-icon {
-      width: 12px;
-      height: 12px;
-      background-color: var(--lamp-on);
-      border-radius: 50%;
-      box-shadow: 0 0 20px var(--lamp-on), 0 0 60px rgba(0, 210, 255, 0.4);
-      display: inline-block;
-      animation: breathe 6s infinite ease-in-out;
-    }
-
-    @keyframes breathe {
-      0% { opacity: 0.6; transform: scale(0.95); }
-      50% { opacity: 1.0; transform: scale(1.05); }
-      100% { opacity: 0.6; transform: scale(0.95); }
-    }
-
-    /* --- Grid Layout --- */
-    .protocol-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 60px;
-      /* 上のボーダーを削除し、ランプで区切る形に変更 */
-      padding-top: 0; 
-    }
-
-    .column {
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* --- Typography & Components --- */
-    h1 {
-      font-family: var(--font-sans);
-      font-size: 0.9rem;
-      color: var(--text-sub);
-      text-transform: uppercase;
-      letter-spacing: 0.2em;
-      margin: 0;
-      opacity: 0.7;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 60px; /* タイトルとランプの距離 */
-    }
-
-    .col-label {
-      font-family: var(--font-sans);
-      font-size: 0.8rem;
-      color: var(--lamp-on);
-      margin-bottom: 32px;
-      display: block;
-      letter-spacing: 0.1em;
-    }
-
-    p {
-      font-size: 0.95rem;
-      margin: 0 0 1.5rem 0;
-      text-align: left;
-    }
-
-    strong {
-      font-weight: bold;
-      color: #fff;
-      border-bottom: 1px solid rgba(0, 210, 255, 0.3);
-    }
-
-    footer {
-      margin-top: 80px;
-      display: flex;
-      justify-content: space-between;
-      font-family: var(--font-sans);
-      font-size: 0.75rem;
-      color: var(--text-sub);
-    }
-
-    /* --- Mobile Responsive --- */
-    @media (max-width: 900px) {
-      body { display: block; padding-top: 60px; }
-      .protocol-grid { grid-template-columns: 1fr; gap: 60px; }
-      .column { border-left: 1px solid rgba(255,255,255,0.1); padding-left: 24px; }
-      .lamp-wrapper { margin-bottom: 40px; }
-    }
-  </style>
+  <link rel="stylesheet" href="../../css/core.css">
 </head>
-<body>
+
+<body class="layout-doc">
 
   <div class="container">
     <header>
@@ -164,11 +17,11 @@
     </header>
 
     <div class="lamp-wrapper">
-        <div class="lamp-icon"></div>
+      <div class="lamp-icon"></div>
     </div>
 
     <div class="protocol-grid">
-      
+
       <div class="column">
         <span class="col-label">01. Why we stop</span>
         <p>分からないから、ではありません。<br>危険だから、でもありません。</p>
@@ -219,11 +72,12 @@
     </div>
 
     <footer>
-        <div class="container">
-            <a href="https://vcdesign.org/ja/boa/" class="link-footer" target="_blank">Designed as a boundary artifact.</a>
-        </div>
+      <div class="container">
+        <a href="https://vcdesign.org/ja/boa/" class="link-footer" target="_blank">Designed as a boundary artifact.</a>
+      </div>
     </footer>
   </div>
 
 </body>
+
 </html>
