@@ -5,10 +5,328 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IDK Lamp | Honest AI Interface</title>
-  <link rel="stylesheet" href="css/core.css">
+  <style>
+    :root {
+      --bg-color: #0a0a0c;
+      --text-main: #e0e0e0;
+      --text-sub: #7a7a85;
+
+      --lamp-off: #2a2a35;
+      --lamp-on: #00d2ff;
+
+      --font-serif: "Times New Roman", serif;
+      --font-sans: "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-serif);
+      margin: 0;
+      line-height: 2.4;
+      letter-spacing: 0.04em;
+      position: relative;
+    }
+
+    /* --- Language Switcher (Top Right) --- */
+    .lang-switch {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      z-index: 100;
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+    }
+
+    .lang-switch a {
+      color: var(--text-sub);
+      text-decoration: none;
+      padding-bottom: 2px;
+      border-bottom: 1px solid transparent;
+      transition: all 0.25s ease;
+    }
+
+    .lang-switch a:hover {
+      color: var(--lamp-on);
+      border-bottom-color: var(--lamp-on);
+    }
+
+    /* --- Link Base (global) --- */
+    a {
+      color: var(--text-sub);
+      text-decoration: none;
+      transition: color 0.25s ease, border-color 0.25s ease;
+    }
+
+    /* hover is quiet for all links */
+    a:hover {
+      color: var(--lamp-on);
+    }
+
+    .link-path {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      display: inline-block;
+      border-bottom: 1px solid rgba(122, 122, 133, 0.6);
+      padding-bottom: 2px;
+    }
+
+    .link-footer {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      opacity: 0.6;
+      border-bottom: 1px solid rgba(122, 122, 133, 0.4);
+      padding-bottom: 2px;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .container-wide {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section {
+      padding: 100px 0;
+    }
+
+    .lamp-icon {
+      width: 12px;
+      height: 12px;
+      background-color: var(--lamp-off);
+      border-radius: 50%;
+      margin: 0 auto 40px;
+      transition: all 1.5s ease-in-out;
+    }
+
+    .lamp-active {
+      background-color: var(--lamp-on);
+      box-shadow: 0 0 20px var(--lamp-on), 0 0 60px rgba(0, 210, 255, 0.4);
+      animation: breathe 6s infinite ease-in-out;
+    }
+
+    @keyframes breathe {
+      0% {
+        opacity: 0.6;
+        transform: scale(0.95);
+      }
+
+      50% {
+        opacity: 1.0;
+        transform: scale(1.05);
+      }
+
+      100% {
+        opacity: 0.6;
+        transform: scale(0.95);
+      }
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-weight: normal;
+      margin: 0;
+    }
+
+    .section-label {
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      display: block;
+      margin-bottom: 24px;
+      opacity: 0.5;
+    }
+
+    .num-mark {
+      display: block;
+      color: var(--lamp-on);
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+      opacity: 0.8;
+      letter-spacing: 0.05em;
+    }
+
+    #hero {
+      text-align: center;
+      padding: 160px 0 100px;
+      min-height: 50vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .hero-copy {
+      font-size: 2.6rem;
+      line-height: 1.4;
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+
+    .hero-sub {
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      font-family: var(--font-sans);
+      letter-spacing: 0.15em;
+    }
+
+    .message-p {
+      font-size: 1.05rem;
+      margin-bottom: 2.5rem;
+      text-align: left;
+    }
+
+    strong {
+      font-weight: bold;
+      color: #fff;
+      font-size: 1.2rem;
+      display: block;
+      margin-bottom: 1.5rem;
+    }
+
+    /* --- Paths (links) --- */
+    .paths {
+      margin-top: 12px;
+      border-top: 1px solid #1a1a20;
+      padding-top: 36px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .paths-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .paths-list li {
+      margin: 0 0 22px 0;
+    }
+
+    .paths-list a {
+      font-family: var(--font-sans);
+      letter-spacing: 0.08em;
+      display: inline-block;
+      border-bottom: 1px solid rgba(122, 122, 133, 0.6);
+      padding-bottom: 2px;
+    }
+
+    .paths-desc {
+      margin: 6px 0 0 0;
+      color: var(--text-sub);
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
+      font-family: var(--font-sans);
+      line-height: 1.6;
+    }
+
+    .paths-group-label {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      opacity: 0.5;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    /* Lamp Link Style */
+    .link-with-lamp {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: none !important;
+    }
+
+    .link-lamp-icon {
+      width: 10px;
+      height: 10px;
+      background-color: var(--lamp-off);
+      border-radius: 50%;
+      transition: all 0.5s ease;
+      display: inline-block;
+    }
+
+    .link-with-lamp:hover .link-lamp-icon {
+      background-color: var(--lamp-on);
+      box-shadow: 0 0 10px var(--lamp-on), 0 0 20px rgba(0, 210, 255, 0.4);
+    }
+
+    .link-with-lamp span {
+      border-bottom: 1px solid rgba(122, 122, 133, 0.6);
+      padding-bottom: 2px;
+      transition: border-color 0.25s ease;
+    }
+
+    .link-with-lamp:hover span {
+      border-bottom-color: var(--lamp-on);
+      color: var(--lamp-on);
+    }
+
+    footer {
+      text-align: center;
+      padding: 80px 0 60px;
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      border-top: 1px solid #1a1a20;
+      margin-top: 60px;
+    }
+
+    .footer-link {
+      display: inline-block;
+      margin-top: 16px;
+      border-bottom: 1px solid var(--text-sub);
+      padding-bottom: 2px;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .paths {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .paths {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-copy {
+        font-size: 1.8rem;
+        line-height: 1.4;
+      }
+
+      #hero {
+        padding: 100px 0 60px;
+      }
+
+      .message-p {
+        text-align: left;
+      }
+
+      .lang-switch {
+        top: 20px;
+        right: 20px;
+      }
+    }
+  </style>
 </head>
 
-<body class="layout-index">
+<body>
 
   <div class="lang-switch">
     <a href="/ja/">日本語</a>
@@ -23,44 +341,29 @@
         an "I Don't Know" Lamp.
       </h1>
       <p class="hero-sub">idk-lamp<br>(I Don’t Know Lamp)</p>
-      When an AI system cannot decide,this signal lights up.<br>
+      When an AI system cannot decide, this signal lights up.<br>
     </div>
     <p class="hero-sub"><a href="#paths">Skip intro</a>
-    </p>
   </section>
 
-  <section id="concept">
+  <section id="scope">
     <div class="container">
-      <span class="section-label">Concept</span>
+      <span class="section-label">Scope</span>
       <p class="message-p">
-        <strong>Is answering everything truly intelligent?</strong>
+        <strong>If we are to act with "Humans + AI"</strong>
       </p>
       <p class="message-p">
-        A truly smart partner knows its limits<br>
-        and honestly asks for help when needed.<br>
+        AI is no longer just something on a screen.<br>
+        We are already trying to act together with AI.
       </p>
       <p class="message-p">
-        Valuing an honest "I don't know" over a perfect answer.<br>
-        It is in that small gap that trust between humans and AI is born.
-      </p>
-    </div>
-  </section>
-
-  <section id="mechanism">
-    <div class="container">
-      <span class="section-label">Mechanism</span>
-      <p class="message-p">
-        The idk-lamp is not<br>
-        a warning light for errors.
+        AI never "hesitates".<br>
+        It can produce calculated answers, but it cannot tremble at uncertainty.<br>
+        It cannot make bets, take responsibility, or even hold silence.
       </p>
       <p class="message-p">
-        It is a quiet signal for a baton pass,<br>
-        where AI pauses and relies on a human,<br>
-        saying, "From here, it's your turn."
-      </p>
-      <p class="message-p">
-        This may be the most sincere form of respect<br>
-        a machine can show a human.
+        To accept anxiety and decide.<br>
+        We will not surrender that human privilege to AI.<br>
       </p>
     </div>
   </section>
@@ -69,39 +372,90 @@
     <div class="container">
       <span class="section-label">Philosophy</span>
       <p class="message-p">
-        <strong>Batons over calculations.</strong>
+        <strong>Place an "I Don't Know" lamp between Humans and AI</strong>
       </p>
       <p class="message-p">
-        Designing the "behavior" of delegating judgment to humans.
+        Is answering everything truly intelligent?<br>
+        A truly smart partner is one who knows their limits<br>
+        and honestly asks for help when needed.
       </p>
       <p class="message-p">
-        Let's build the circuit that lights the lamp.<br>
-        That is our final responsibility as creators<br>
-        releasing AI into society.
+        A baton pass rather than a calculation result.<br>
+        An honest "I don't know" rather than a perfect correct answer.<br>
       </p>
+      <p class="message-p">
+        To give it the circuit to light a lamp, entrusting judgment to humans.<br>
+        That is our responsibility.
+      </p>
+    </div>
+  </section>
 
+  <section id="methodology">
+    <div class="container">
+      <span class="section-label">Methodology</span>
+      <p class="message-p">
+        <strong>A record of searching together for where to stop</strong>
+      </p>
+      <p class="message-p">
+        A "fray" is not a failure.<br>
+        It is a "point" on the map showing that a boundary was needed there.<br>
+      </p>
+      <p class="message-p">
+        And connecting those points,<br>
+        showing where to place the lamp, is the "map" called the repository.<br>
+        Here we have prepared a record for practice and dialogue.
+      </p>
+    </div>
+  </section>
+
+  <section id="action">
+    <div class="container-wide">
+      <span class="section-label">Action</span>
+      <p class="message-p" style="max-width: 720px; margin-left: auto; margin-right: auto;">
+        <strong>First, a single signal</strong>
+      </p>
+      <p class="message-p" style="max-width: 720px; margin-left: auto; margin-right: auto;">
+        The "lamp" is just a metaphor.<br>
+        It might be code returning <code>return null</code>,<br>
+        or a single line of requirement saying "I want a boundary here".
+      </p>
+      <p class="message-p" style="max-width: 720px; margin-left: auto; margin-right: auto;">
+        The creator implements that function,<br>
+        and the user raises their voice saying "Please attach that".<br>
+      </p>
+      <p class="message-p" style="max-width: 720px; margin-left: auto; margin-right: auto;">
+        So, first, a signal for dialogue in that system.
+      </p>
       <div class="paths" id="paths">
 
         <div class="paths-group">
-          <span class="paths-group-label">Philosophy</span>
+          <span class="paths-group-label">
+            <span class="num-mark">01.</span>
+            If we are to act with<br>"Humans + AI"
+          </span>
           <ul class="paths-list">
-            <li>
-              <a href="signal" class="link-path" target="_blank">I Don’t Know Signal</a>
-              <p class="paths-desc">Why stop, and how to behave</p>
-            </li>
             <li>
               <a href="principles" class="link-path" target="_blank">Design Principles</a>
               <p class="paths-desc">Boundaries, deferred judgment, and gate design</p>
+            </li>
+            <li>
+              <a href="https://github.com/hironobu-arakawa/ai-human-boundary" class="link-path" target="_blank">
+                ai-human-boundary
+              </a>
+              <p class="paths-desc">AI and humans choosing value together</p>
             </li>
           </ul>
         </div>
 
         <div class="paths-group">
-          <span class="paths-group-label">Implementation</span>
+          <span class="paths-group-label">
+            <span class="num-mark">02.</span>
+            Place an "I Don't Know" lamp<br>between Humans and AI
+          </span>
           <ul class="paths-list">
             <li>
-              <a href="start/" class="link-path" target="_blank">Start here</a>
-              <p class="paths-desc">Demo → Install → Gate (5 min)</p>
+              <a href="signal" class="link-path" target="_blank">I Don’t Know Signal</a>
+              <p class="paths-desc">Why stop, and how to behave</p>
             </li>
             <li>
               <a href="/demo/" class="link-with-lamp" target="_blank">
@@ -110,17 +464,44 @@
               </a>
               <p class="paths-desc">See what "I don't know" looks like</p>
             </li>
+          </ul>
+        </div>
+
+        <div class="paths-group">
+          <span class="paths-group-label">
+            <span class="num-mark">03.</span>
+            A record of searching<br>together for where to stop
+          </span>
+          <ul class="paths-list">
             <li>
-              <a href="https://github.com/hironobu-arakawa/predictability-gate" class="link-path" target="_blank">
-                When not to decide
-              </a>
-              <p class="paths-desc">Designing conditions for AI to stop deciding</p>
+              <a href="https://bevel-technician-723.notion.site/AI-DB-2e6e0031cd1880938062f9851020e0bb"
+                class="link-path" target="_blank">AI Case Diagnosis DB</a>
+              <p class="paths-desc">A "point" on the map showing<br>a boundary was needed</p>
             </li>
             <li>
               <a href="https://github.com/hironobu-arakawa/decision-closure" class="link-path" target="_blank">
                 Decision Closure
               </a>
-              <p class="paths-desc">A structure to determine if AI can close decisions in dialogue</p>
+              <p class="paths-desc">Structure to decide if AI<br>can finalize judgment in dialogue</p>
+            </li>
+          </ul>
+        </div>
+
+        <div class="paths-group">
+          <span class="paths-group-label">
+            <span class="num-mark">04.</span>
+            First, a single signal
+          </span>
+          <ul class="paths-list">
+            <li>
+              <!--              <a href="start/" class="link-path" target="_blank">Start here</a>
+              <p class="paths-desc">Demo → Install → Gate (5 min)</p>
+            </li>-->
+            <li>
+              <a href="https://github.com/hironobu-arakawa/predictability-gate" class="link-path" target="_blank">
+                When not to decide
+              </a>
+              <p class="paths-desc">Designing conditions for AI to stop deciding</p>
             </li>
           </ul>
         </div>

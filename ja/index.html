@@ -5,10 +5,287 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IDK Lamp | Honest AI Interface</title>
-  <link rel="stylesheet" href="../css/core.css">
+  <style>
+    :root {
+      --bg-color: #0a0a0c;
+      --text-main: #e0e0e0;
+      --text-sub: #7a7a85;
+
+      --lamp-off: #2a2a35;
+      --lamp-on: #00d2ff;
+
+      --font-serif: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", serif;
+      --font-sans: "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-serif);
+      margin: 0;
+      line-height: 2.4;
+      letter-spacing: 0.08em;
+      position: relative;
+      /* 言語リンクの配置基準 */
+    }
+
+    /* --- Language Switcher (Top Right) --- */
+    .lang-switch {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      z-index: 100;
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+    }
+
+    .lang-switch a {
+      color: var(--text-sub);
+      text-decoration: none;
+      padding-bottom: 2px;
+      border-bottom: 1px solid transparent;
+      transition: all 0.25s ease;
+    }
+
+    .lang-switch a:hover {
+      color: var(--lamp-on);
+      border-bottom-color: var(--lamp-on);
+    }
+
+    /* --- Link Base (global) --- */
+    a {
+      color: var(--text-sub);
+      text-decoration: none;
+      transition: color 0.25s ease, border-color 0.25s ease;
+    }
+
+    /* hoverは全リンク共通で「静か」 */
+    a:hover {
+      color: var(--lamp-on);
+    }
+
+    .link-path {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      letter-spacing: 0.14em;
+      display: inline-block;
+      border-bottom: 1px solid rgba(122, 122, 133, 0.6);
+      padding-bottom: 2px;
+    }
+
+    .link-footer {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      opacity: 0.6;
+      border-bottom: 1px solid rgba(122, 122, 133, 0.4);
+      padding-bottom: 2px;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .container-wide {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section {
+      padding: 100px 0;
+    }
+
+    .lamp-icon {
+      width: 12px;
+      height: 12px;
+      background-color: var(--lamp-off);
+      border-radius: 50%;
+      margin: 0 auto 40px;
+      transition: all 1.5s ease-in-out;
+    }
+
+    .lamp-active {
+      background-color: var(--lamp-on);
+      box-shadow: 0 0 20px var(--lamp-on), 0 0 60px rgba(0, 210, 255, 0.4);
+      animation: breathe 6s infinite ease-in-out;
+    }
+
+    @keyframes breathe {
+      0% {
+        opacity: 0.6;
+        transform: scale(0.95);
+      }
+
+      50% {
+        opacity: 1.0;
+        transform: scale(1.05);
+      }
+
+      100% {
+        opacity: 0.6;
+        transform: scale(0.95);
+      }
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-weight: normal;
+      margin: 0;
+    }
+
+    .section-label {
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      display: block;
+      margin-bottom: 24px;
+
+      opacity: 0.5;
+    }
+
+    .num-mark {
+      display: block;
+      color: var(--lamp-on);
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+      opacity: 0.8;
+      letter-spacing: 0.05em;
+    }
+
+    #hero {
+      text-align: center;
+      padding: 160px 0 100px;
+      min-height: 50vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .hero-copy {
+      font-size: 2.6rem;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      letter-spacing: 0.1em;
+    }
+
+    .hero-sub {
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      font-family: var(--font-sans);
+      letter-spacing: 0.15em;
+    }
+
+    .message-p {
+      font-size: 1.05rem;
+      margin-bottom: 2.5rem;
+      text-align: justify;
+      text-justify: inter-ideograph;
+    }
+
+    strong {
+      font-weight: bold;
+      color: #fff;
+      font-size: 1.2rem;
+      display: block;
+      margin-bottom: 1.5rem;
+    }
+
+    /* --- Paths (links) --- */
+    .paths {
+      margin-top: 12px;
+      border-top: 1px solid #1a1a20;
+      padding-top: 36px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .paths-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .paths-list li {
+      margin: 0 0 22px 0;
+    }
+
+    .paths-list a {
+      font-family: var(--font-sans);
+      letter-spacing: 0.14em;
+      display: inline-block;
+      border-bottom: 1px solid rgba(122, 122, 133, 0.6);
+      padding-bottom: 2px;
+    }
+
+    .paths-desc {
+      margin: 6px 0 0 0;
+      color: var(--text-sub);
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      font-family: var(--font-sans);
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      padding: 80px 0 60px;
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      border-top: 1px solid #1a1a20;
+      margin-top: 60px;
+    }
+
+    .footer-link {
+      display: inline-block;
+      margin-top: 16px;
+      border-bottom: 1px solid var(--text-sub);
+      padding-bottom: 2px;
+    }
+
+    /* SP調整 */
+    @media (max-width: 900px) {
+      .paths {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .paths {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-copy {
+        font-size: 1.8rem;
+        line-height: 1.5;
+      }
+
+      #hero {
+        padding: 100px 0 60px;
+      }
+
+      .message-p {
+        text-align: left;
+      }
+
+      .lang-switch {
+        top: 20px;
+        right: 20px;
+      }
+    }
+  </style>
 </head>
 
-<body class="layout-index">
+<body>
 
   <div class="lang-switch">
     <a href="/">English</a>
@@ -28,38 +305,24 @@
     <p class="hero-sub"><a href="#paths">Skip intro</a>
   </section>
 
-  <section id="concept">
+  <section id="scope">
     <div class="container">
-      <span class="section-label">Concept</span>
+      <span class="section-label">Scope</span>
       <p class="message-p">
-        <strong>なんでも答えることが、知性だろうか。</strong>
+        <strong>「人＋AI」で、行動するのなら</strong>
       </p>
       <p class="message-p">
-        本当に賢いパートナーとは、<br>
-        自分の限界を知り、素直に助けを求められる存在のことだ。<br>
+        AIはもう、画面の向こうの他人事ではない。<br>
+        私たちはすでに、AIと行動を共にしようとしている。
       </p>
       <p class="message-p">
-        完璧な正解よりも、正直な「分からない」を。<br>
-        その小さな隙間にこそ、人間とAIの信頼関係は生まれる。
-      </p>
-    </div>
-  </section>
-
-  <section id="mechanism">
-    <div class="container">
-      <span class="section-label">Mechanism</span>
-      <p class="message-p">
-        idk-lamp は、<br>
-        エラーを知らせる警告灯ではない。
+        AIは決して「迷わない」。<br>
+        計算された答えは出せても、不確実性に身を震わせることはできない。<br>
+        賭けも、責任も、沈黙さえも持てない。
       </p>
       <p class="message-p">
-        AIがふと立ち止まり、<br>
-        「ここから先は、あなたの出番です」と<br>
-        人間を頼る、静かなバトンパスの合図だ。
-      </p>
-      <p class="message-p">
-        それは、機械が人間に向ける、<br>
-        最も誠実なリスペクトの形かもしれない。
+        不安を引き受け、決断する。<br>
+        その人間らしい特権をAIに明け渡さない。<br>
       </p>
     </div>
   </section>
@@ -68,38 +331,90 @@
     <div class="container">
       <span class="section-label">Philosophy</span>
       <p class="message-p">
-        <strong>計算結果よりも、バトン。</strong>
+        <strong>人とAIの間に、「分かりません」ランプを</strong>
       </p>
       <p class="message-p">
-        人間に判断を委ねるという「振る舞い」の設計。
+        なんでも答えることが、知性だろうか。<br>
+        本当に賢いパートナーとは、<br>
+        自分の限界を知り、素直に助けを求められる存在のことだ。
       </p>
       <p class="message-p">
-        ランプを灯す回路を作ろう。<br>
-        それが、AIを社会に放つ、作り手である我々の最後の責任だ。
+        計算結果よりも、バトン。<br>
+        完璧な正解よりも、正直な「分からない」を。<br>
       </p>
+      <p class="message-p">
+        人間に判断を委ねるという、ランプを灯す回路を持たせること。<br>
+        それが我々の責任だ。
+      </p>
+    </div>
+  </section>
 
+  <section id="methodology">
+    <div class="container">
+      <span class="section-label">Methodology</span>
+      <p class="message-p">
+        <strong>止まるべき場所を、共に探す記録</strong>
+      </p>
+      <p class="message-p">
+        「ほころび」は、失敗ではない。<br>
+        それは、そこに境界線が必要だったことを示す、地図上の「点」だ。<br>
+      </p>
+      <p class="message-p">
+        そして、その点をつなぎ合わせ、<br>
+        どこにランプを置くべきかを示したのが、リポジトリという名の「地図」だ。<br>
+        我々はここに、実践と対話のための記録を用意した。
+      </p>
+    </div>
+  </section>
+
+  <section id="action">
+    <div class="container-wide">
+      <span class="section-label">Action</span>
+      <p class="message-p" style="max-width: 720px; margin-left: auto; margin-right: auto;">
+        <strong>まずは、ひとつのシグナルを</strong>
+      </p>
+      <p class="message-p" style="max-width: 720px; margin-left: auto; margin-right: auto;">
+        「ランプ」とは、ただのメタファーに過ぎない。<br>
+        それは、return null というコードかもしれないし、<br>
+        「ここに境界が欲しい」という、たった一行の要求かもしれない。
+      </p>
+      <p class="message-p" style="max-width: 720px; margin-left: auto; margin-right: auto;">
+        作り手は、その機能を実装し、<br>
+        使い手は、「それを付けてくれ」と声を上げる。<br>
+      </p>
+      <p class="message-p" style="max-width: 720px; margin-left: auto; margin-right: auto;">
+        だから、まずそのシステムに、対話のためのシグナルを。
+      </p>
       <div class="paths" id="paths">
 
         <div class="paths-group">
-          <span class="paths-group-label">思想</span>
+          <span class="paths-group-label">
+            <span class="num-mark">01.</span>
+            「人＋AI」で、<br>行動するのなら
+          </span>
           <ul class="paths-list">
-            <li>
-              <a href="signal" class="link-path" target="_blank">I Don’t Know Signal</a>
-              <p class="paths-desc">なぜ止め、どう振る舞うか</p>
-            </li>
             <li>
               <a href="principles" class="link-path" target="_blank">Design Principles</a>
               <p class="paths-desc">境界、判断保留、ゲートの設計</p>
+            </li>
+            <li>
+              <a href="https://github.com/hironobu-arakawa/ai-human-boundary" class="link-path" target="_blank">
+                ai-human-boundary
+              </a>
+              <p class="paths-desc">AIと人が一緒に価値を選ぶ</p>
             </li>
           </ul>
         </div>
 
         <div class="paths-group">
-          <span class="paths-group-label">実装</span>
+          <span class="paths-group-label">
+            <span class="num-mark">02.</span>
+            人とAIの間に、<br>「分かりません」ランプを
+          </span>
           <ul class="paths-list">
             <li>
-              <a href="start/" class="link-path" target="_blank">Start here</a>
-              <p class="paths-desc">Demo → Install → Gate（5分）</p>
+              <a href="signal" class="link-path" target="_blank">I Don’t Know Signal</a>
+              <p class="paths-desc">なぜ止め、どう振る舞うか</p>
             </li>
             <li>
               <a href="/demo/" class="link-with-lamp" target="_blank">
@@ -108,17 +423,44 @@
               </a>
               <p class="paths-desc">「分かりません」が、どう見えるか</p>
             </li>
+          </ul>
+        </div>
+
+        <div class="paths-group">
+          <span class="paths-group-label">
+            <span class="num-mark">03.</span>
+            止まるべき場所を、<br>共に探す記録
+          </span>
+          <ul class="paths-list">
             <li>
-              <a href="https://github.com/hironobu-arakawa/predictability-gate" class="link-path" target="_blank">
-                When not to decide
-              </a>
-              <p class="paths-desc">AIが判断を止める条件を設計する</p>
+              <a href="https://bevel-technician-723.notion.site/AI-DB-2e6e0031cd1880938062f9851020e0bb"
+                class="link-path" target="_blank">AIケース診断DB</a>
+              <p class="paths-desc">境界線が必要だったことを示す、<br>地図上の「点」</p>
             </li>
             <li>
               <a href="https://github.com/hironobu-arakawa/decision-closure" class="link-path" target="_blank">
                 Decision Closure
               </a>
-              <p class="paths-desc">対話において、AIが判断を完結してよいかを決める構造</p>
+              <p class="paths-desc">対話において、<br>AIが判断してよいかを決める構造</p>
+            </li>
+          </ul>
+        </div>
+
+        <div class="paths-group">
+          <span class="paths-group-label">
+            <span class="num-mark">04.</span>
+            まずは、<br>ひとつのシグナルを
+          </span>
+          <ul class="paths-list">
+            <!--            <li>
+              <a href="start/" class="link-path" target="_blank">Start here</a>
+              <p class="paths-desc">Demo → Install → Gate（5分）</p>
+            </li>-->
+            <li>
+              <a href="https://github.com/hironobu-arakawa/predictability-gate" class="link-path" target="_blank">
+                When not to decide
+              </a>
+              <p class="paths-desc">AIが判断を止める条件を設計する</p>
             </li>
           </ul>
         </div>
