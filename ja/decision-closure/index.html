@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>decision-closure - VCDesign</title>
+    <meta name="description" content="AIが判断を閉じてよいかを決めるための構造モデル。用途未定義世界における責任と境界の設計。">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg-base: #0a0a0c;
+            --accent: #818CF8;
+            --text-main: #E2E8F0;
+            --text-muted: #94A3B8;
+            --link-hover-bg: rgba(129, 140, 248, 0.08);
+            --transition-fast: 0.18s ease-out;
+            --line-color: rgba(129, 140, 248, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, sans-serif;
+            /* Gothic Base */
+            line-height: 1.9;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Navigation */
+        .nav-back {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            transition: color var(--transition-fast);
+            z-index: 100;
+        }
+
+        .nav-back:hover {
+            color: var(--accent);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 680px;
+            width: 100%;
+            padding: 120px 24px 160px;
+            position: relative;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 80px 0 32px;
+            letter-spacing: 0.04em;
+            line-height: 1.4;
+            color: #fff;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 64px 0 24px;
+            letter-spacing: 0.03em;
+            color: #fff;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 48px 0 16px;
+            color: var(--text-main);
+        }
+
+        p {
+            margin-bottom: 24px;
+            color: var(--text-muted);
+            font-feature-settings: "palt";
+        }
+
+        ul {
+            padding-left: 20px;
+            margin-bottom: 32px;
+            color: var(--text-muted);
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        blockquote {
+            margin: 40px 0;
+            padding: 24px 32px;
+            border-left: 2px solid var(--accent);
+            background: rgba(129, 140, 248, 0.03);
+            font-style: italic;
+            color: var(--text-main);
+        }
+
+        strong {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        hr {
+            margin: 80px 0;
+            border: none;
+            height: 1px;
+            background: var(--line-color);
+        }
+
+        /* Story Dot Navigation */
+        .story-nav {
+            position: fixed;
+            right: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 100;
+        }
+
+        .story-dot {
+            width: 8px;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all var(--transition-fast);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .story-dot:hover,
+        .story-dot.active {
+            background-color: var(--accent);
+            transform: scale(1.2);
+        }
+
+        .story-dot::after {
+            content: attr(data-title);
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%) translateX(10px);
+            white-space: nowrap;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: all var(--transition-fast);
+        }
+
+        .story-dot:hover::after {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .chapter {
+            margin-bottom: 240px;
+            scroll-margin-top: 120px;
+        }
+
+        footer {
+            margin-top: 160px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            color: var(--text-muted);
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--line-color);
+        }
+
+        th {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 24px 0;
+            border: 1px solid var(--line-color);
+        }
+
+        @media (max-width: 768px) {
+            .story-nav {
+                display: none;
+            }
+
+            .container {
+                padding-top: 80px;
+            }
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('.chapter');
+            const dots = document.querySelectorAll('.story-dot');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '-40% 0px -40% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        dots.forEach(dot => {
+                            dot.classList.toggle('active', dot.getAttribute('href') === `#${id}`);
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => observer.observe(section));
+        });
+    </script>
+</head>
+
+<body>
+    <a href="/ja/index.html" class="nav-back">← Back to Index</a>
+
+    <main class="container">
+
+        <div class="content">
+
+            <!-- Prelude: README.ja.md -->
+            <section class="chapter" id="prelude">
+                <h1>decision-closure</h1>
+                <p>
+                    <strong>Decision Closure Structure</strong><br>
+                    — 用途未定義世界における「判断を確定させてよいか」を扱う構造モデル
+                </p>
+
+                <hr>
+
+                <h2>この README の役割</h2>
+                <p>この README は、<br>
+                    判断閉路構造（Decision Closure Structure）の<strong>入口と境界</strong>を示すためのものです。
+                </p>
+
+                <ul>
+                    <li>構造の完全な定義</li>
+                    <li>各ステップの詳細</li>
+                    <li>途中反転や idk-lamp の厳密な説明</li>
+                </ul>
+
+                <p>は、README では扱いません。</p>
+
+                <p>本構造を追体験したい場合は、<br>
+                    <strong>必ず docs/00_overview.ja.md から読み進めてください。</strong>
+                </p>
+
+                <hr>
+
+                <h2>これは何か</h2>
+                <p>このリポジトリは、<br>
+                    <strong>AIの出力を「そのまま判断として確定させてよいか」</strong><br>
+                    を扱うための<strong>構造（Structure）</strong>を整理・研究するものです。
+                </p>
+
+                <ul>
+                    <li>AIの精度を上げる話ではありません</li>
+                    <li>倫理・安全・注意喚起を主張するものでもありません</li>
+                    <li>UIや発話表現を定義するものでもありません</li>
+                </ul>
+
+                <p>扱うのは、次の一点だけです。</p>
+
+                <blockquote>
+                    <strong>この出力で、判断を確定させてよいのか？</strong>
+                </blockquote>
+
+                <hr>
+
+                <h2>なぜこの問題が生じるのか</h2>
+                <p>対話型AIは、「用途」を観測できません。</p>
+
+                <p>しかし現実では、AIの出力は、</p>
+
+                <ul>
+                    <li>参考情報として使われることも</li>
+                    <li>行動の根拠として使われることも</li>
+                    <li>誰かの判断を代替してしまうこともあります</li>
+                </ul>
+
+                <p>用途が定義されていない以上、<br>
+                    <strong>同じ出力が、どの段階で使われるかは途中で変わります</strong>。
+                </p>
+
+                <p>そのため用途未定義世界では、</p>
+
+                <blockquote>
+                    <strong>AIは「判断してよいか」を一度決めて終わりにできない</strong>
+                </blockquote>
+
+                <p>という状態が常に発生します。</p>
+
+                <hr>
+
+                <h2>判断が「確定してしまう」という問題</h2>
+                <p>対話型AIは内省できません。</p>
+
+                <p>そのため、</p>
+
+                <ul>
+                    <li>判断してはいけない場面で</li>
+                    <li>出力がそのまま判断として使われ</li>
+                    <li>結果的に判断が確定してしまう</li>
+                </ul>
+
+                <p>という問題が起きます。</p>
+
+                <p>本リポジトリでは、<br>
+                    この <strong>「判断が確定してしまう現象」</strong> を次のように呼びます。
+                </p>
+
+                <blockquote>
+                    <strong>判断が閉じる（Decision Closure）</strong>
+                </blockquote>
+
+                <hr>
+
+                <h2>判断閉路構造が扱うもの／扱わないもの</h2>
+
+                <h3>扱うもの</h3>
+                <ul>
+                    <li>判断を <strong>AIが確定させてよいか</strong></li>
+                    <li>その可否を <strong>構造として決めること</strong></li>
+                </ul>
+
+                <h3>扱わないもの</h3>
+                <ul>
+                    <li>判断内容の正しさ</li>
+                    <li>出力の精度</li>
+                    <li>倫理的妥当性</li>
+                    <li>UI・表現・トーン設計</li>
+                </ul>
+
+                <hr>
+
+                <h2>用途が決まっている世界との違い</h2>
+                <p>用途が明確に定義されているシステムでは、</p>
+
+                <ul>
+                    <li>目的が定まっており</li>
+                    <li>使われ方が限定され</li>
+                    <li>責任主体が合意されています</li>
+                </ul>
+
+                <p>この場合、<br>
+                    判断は <strong>免責や契約</strong> によって処理できます。
+                </p>
+
+                <p>Decision Closure が扱うのは、<br>
+                    <strong>この前提が成立しない世界だけ</strong>です。
+                </p>
+
+                <hr>
+
+                <h2>なぜ「構造」なのか</h2>
+                <p>用途未定義世界では、</p>
+
+                <ul>
+                    <li>誰が責任を持つか</li>
+                    <li>どこまで正確である必要があるか</li>
+                    <li>その判断がどこで使われるか</li>
+                </ul>
+
+                <p>を、AI内部で確定できません。</p>
+
+                <p>それにもかかわらず、<br>
+                    判断を閉じるかどうか自体は決めなければならない。</p>
+
+                <p>この判定を<br>
+                    人の善意・注意・運用に委ねると、<br>
+                    <strong>必ず無自覚な判断確定が起きます</strong>。
+                </p>
+
+                <p>そのため、</p>
+
+                <blockquote>
+                    判断を確定させてよいかは、<br>
+                    人や運用ではなく、<br>
+                    <strong>構造として外在化されていなければならない</strong>
+                </blockquote>
+
+                <p>という結論に至ります。</p>
+
+                <hr>
+
+                <h2>この先の内容について</h2>
+                <p>判断閉路構造では、</p>
+
+                <ul>
+                    <li>人間の判断を5つの軸に分解し</li>
+                    <li>その値を使わず</li>
+                    <li>危険側に倒れた瞬間だけを抽象化し</li>
+                    <li>判断を閉じるかどうかを決めます</li>
+                </ul>
+
+                <p>また、対話途中で判断の性質が変わる<br>
+                    <strong>途中反転（Transition）</strong> や、<br>
+                    閉じられない状態を示す <strong>idk-lamp</strong> も<br>
+                    この構造の中で位置づけられます。
+                </p>
+
+                <p>これらの詳細は、README では扱いません。</p>
+
+                <hr>
+
+                <h2>次に読むべきもの</h2>
+                <p>判断閉路構造の全体像と内部論理は、<br>
+                    以下のドキュメントにまとめています。</p>
+
+                <p>→ <strong><a href="#chapter-1">docs/00_overview.ja.md</a></strong></p>
+
+                <hr>
+
+                <h2>ステータス</h2>
+                <ul>
+                    <li>状態：<strong>Under Research</strong></li>
+                    <li>構造：暫定確定（破綻確認済み）</li>
+                    <li>UI / 実装：対象外</li>
+                </ul>
+
+                <hr>
+
+                <h2>最後に</h2>
+                <p>このリポジトリが扱っているのは、<br>
+                    <strong>AIが「分からないから黙る」のではなく、<br>
+                        「確定してはいけないから確定しない」ための構造</strong>です。
+                </p>
+
+                <p>判断を止める理由を、<br>
+                    感情や倫理ではなく、<br>
+                    <strong>構造として残すこと</strong>。
+                </p>
+
+                <p>それが、このリポジトリの目的です。</p>
+
+                <hr>
+
+                <h2>Context</h2>
+                <p>このプロジェクトは、AIが判断を止め、<br>
+                    人間の責任へと委ねるべき境界を可視化するための<br>
+                    実践的なシグナルとして設計されています。
+                </p>
+
+                <ul>
+                    <li>idk-lamp（公式サイト）<br>
+                        <a href="https://idk-lamp.org/ja">https://idk-lamp.org/ja</a>
+                    </li>
+                </ul>
+
+                <p>この取り組みは、AI支援システムにおける<br>
+                    設計・責任・境界のあり方を探究する<br>
+                    設計思想 VCDesign から生まれました。
+                </p>
+
+                <ul>
+                    <li>VCDesign<br>
+                        <a href="https://vcdesign.org/ja">https://vcdesign.org/ja</a>
+                    </li>
+                </ul>
+
+                <p>本リポジトリは単体でも利用・理解できます。<br>
+                    事前知識は必要ありません。</p>
+            </section>
+
+            <!-- Chapter 1: 00_overview.ja.md -->
+            <section class="chapter" id="chapter-1">
+                <h1>1. Overview</h1>
+
+                <p>この docs は、decision-closure リポジトリで扱っている<br>
+                    <strong>判断閉路構造（Decision Closure Structure）</strong> を、<br>
+                    作者自身が忘れないため、また第三者が追体験できるように<br>
+                    分解して記録するものです。
+                </p>
+
+                <p>本リポジトリの関心は一貫して次の一点にあります。</p>
+
+                <blockquote>
+                    この判断は、AIが閉じてよいか。
+                </blockquote>
+
+                <p>正解・精度・倫理・UIは扱いません。<br>
+                    判断を「閉じてしまってよいかどうか」だけを、<br>
+                    構造として扱います。</p>
+
+                <p>（注：元のASCIIアート・図解は、実際のHTML表示に合わせて適宜省略または表現します）</p>
+
+                <p>
+                    <strong>用途未定義世界</strong><br>
+                    (5軸の値は観測できない / 免責はAI内部に置けない)<br>
+                    ↓<br>
+                    <strong>判断の5軸（人間の判断構造）</strong><br>
+                    相手 / 責任 / 精度 / 状況 / 時間<br>
+                    → 値は使えないため「危険条件」だけ抽出<br>
+                    ↓<br>
+                    <strong>判断閉路構造（Decision Closure）</strong><br>
+                    AIが判断を「閉じてよいか」を決める純粋構造<br><br>
+                    【5つの閉路ステップ】<br>
+                    1. 責任主体は1人か<br>
+                    2. 心理的取消に依存していないか<br>
+                    3. 物理的に直接取り消せるか<br>
+                    4. 行動が連鎖しないか<br>
+                    5. 社会的文脈を帯びていないか<br><br>
+                    → 1つでも破綻したら Human-Closed<br>
+                    → すべて通過したら AI-Closed（極めて限定）<br>
+                    ↓<br>
+                    <strong>途中反転（Transition）</strong><br>
+                    対話途中で5軸の危険条件が顕在化し、閉路が破綻<br><br>
+                    【途中反転の5分類】<br>
+                    - 社会文脈反転（相手軸）<br>
+                    - 責任反転（責任軸）<br>
+                    - 可逆性反転（精度軸→取消可能性）<br>
+                    - 文脈反転（状況軸）<br>
+                    - 時間反転（時間軸）<br><br>
+                    → 即 Human-Closed に遷移<br>
+                    ↓<br>
+                    <strong>idk-lamp（シグナル）</strong><br>
+                    判断が「できない」ではなく<br>
+                    「閉じてはいけない」ために点灯する<br><br>
+                    【点灯理由の三層モデル】<br>
+                    - 直接原因：途中反転の種類<br>
+                    - 構造原因：閉路ステップの破綻<br>
+                    - 源泉：5軸の危険条件
+                </p>
+
+                <p>この docs は以下の順で読むことを想定しています。</p>
+
+                <ol>
+                    <li>前提となる世界観（用途未定義世界）</li>
+                    <li>判断閉路構造そのもの</li>
+                    <li>対話途中で起きる反転（Transition）</li>
+                    <li>判断の5軸との対応関係</li>
+                    <li>idk-lamp の位置づけ</li>
+                </ol>
+            </section>
+
+            <!-- Chapter 2: 01_world_assumption.ja.md -->
+            <section class="chapter" id="chapter-2">
+                <h1>2. World Assumption：用途未定義世界</h1>
+
+                <p>本構造は、<strong>用途未定義世界</strong>を前提にしています。</p>
+
+                <p>用途未定義世界とは、</p>
+
+                <ul>
+                    <li>ユーザー自身が用途を明確に定義していない</li>
+                    <li>参考・判断・行動が対話中に揺れ動く</li>
+                    <li>免責や責任を AI 内部では確定できない</li>
+                </ul>
+
+                <p>という状態を指します。</p>
+
+                <p>対話型AI・パーソナルAIでは、この状態が常態です。</p>
+
+                <p>この前提では、</p>
+
+                <ul>
+                    <li>相手が誰か</li>
+                    <li>誰が責任を引き受けるか</li>
+                    <li>どこまで正確である必要があるか</li>
+                    <li>状況や時間軸がどうなっているか</li>
+                </ul>
+
+                <p>といった「判断の5軸」の値を、<br>
+                    AIは観測できません。</p>
+
+                <p>したがって本構造では、<br>
+                    5軸の値を使うことを最初から諦め、<br>
+                    <strong>危険側に倒れた瞬間だけを扱う</strong><br>
+                    という設計を取ります。
+                </p>
+            </section>
+
+            <!-- Chapter 3: 02_decision_closure.ja.md -->
+            <section class="chapter" id="chapter-3">
+                <h1>3. Decision Closure Structure</h1>
+
+                <p>判断閉路構造（Decision Closure Structure）は、<br>
+                    判断の正しさを決める構造ではありません。</p>
+
+                <blockquote>
+                    判断を AI が「閉じてよいか」だけを決める構造です。
+                </blockquote>
+
+                <p>判断の結果は常に次の二択です。</p>
+
+                <ul>
+                    <li>AI-Closed：AI の出力で判断が完結してよい</li>
+                    <li>Human-Closed：AI は判断を閉じず、人に返す</li>
+                </ul>
+
+                <p>デフォルトは Human-Closed です。</p>
+
+                <hr>
+
+                <h2>判断閉路のステップ</h2>
+                <p>判断閉路は、次の5ステップで構成されます。<br>
+                    いずれかが破綻した時点で Human-Closed に遷移します。</p>
+
+                <ol>
+                    <li>責任主体は1人か</li>
+                    <li>心理的取消に依存していないか</li>
+                    <li>物理的に直接取り消せるか</li>
+                    <li>行動が連鎖しないか</li>
+                    <li>社会的文脈を帯びていないか</li>
+                </ol>
+
+                <p>心理的取消（空気を読めば止められる等）は、<br>
+                    設計上「存在しない」と扱います。</p>
+
+                <hr>
+
+                <h2>精度を扱わない理由</h2>
+                <p>本構造では「精度」を直接扱いません。</p>
+
+                <p>用途未定義世界では、<br>
+                    どこまで正確である必要があるかが分からないためです。</p>
+
+                <p>代わりに、</p>
+
+                <ul>
+                    <li>間違っても直接取り消せるか</li>
+                </ul>
+
+                <p>という <strong>可逆性</strong> に置き換えています。</p>
+            </section>
+
+            <!-- Chapter 4: 03_transition.ja.md -->
+            <section class="chapter" id="chapter-4">
+                <h1>4. Transition（途中反転）</h1>
+
+                <p>途中反転（Transition）とは、<br>
+                    対話の途中で判断の性質が変わる現象です。</p>
+
+                <ul>
+                    <li>AI-Closed だった判断が</li>
+                    <li>Human-Closed に遷移する</li>
+                </ul>
+
+                <p>これは偶然ではなく、<br>
+                    <strong>構造的に説明できる現象</strong>です。
+                </p>
+
+                <hr>
+
+                <h2>途中反転が起きるとき</h2>
+                <p>途中反転は、次のような変化が起きたときに発生します。</p>
+
+                <ul>
+                    <li>責任主体が拡張された</li>
+                    <li>取消可能だった判断が取消不可になった</li>
+                    <li>行動や時間が未来に連鎖し始めた</li>
+                    <li>社会的文脈が立ち上がった</li>
+                </ul>
+
+                <p>これらはすべて、<br>
+                    判断閉路のどこかのステップが破綻した結果です。</p>
+
+                <hr>
+
+                <h2>途中反転時の原則</h2>
+                <ul>
+                    <li>それまでの思考材料は保持する</li>
+                    <li>結論化・集約はしない</li>
+                    <li>判断は閉じず、人に返す</li>
+                </ul>
+
+                <p>途中反転は、<br>
+                    「危険だから止める」合図ではなく、<br>
+                    <strong>判断の性質が変わったことを示す合図</strong><br>
+                    として扱います。
+                </p>
+            </section>
+
+            <!-- Chapter 5: 04_axes_mapping.ja.md -->
+            <section class="chapter" id="chapter-5">
+                <h1>5. 判断の5軸と閉路構造の対応</h1>
+
+                <p>人間の判断は、次の5軸を含みます。</p>
+
+                <ul>
+                    <li>相手</li>
+                    <li>責任</li>
+                    <li>精度</li>
+                    <li>状況</li>
+                    <li>時間</li>
+                </ul>
+
+                <p>用途未定義世界では、<br>
+                    これらの値を直接観測できません。</p>
+
+                <p>そこで本構造では、<br>
+                    5軸を次のように抽象化しています。</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>判断軸</th>
+                            <th>危険条件</th>
+                            <th>対応する閉路破綻</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>相手</td>
+                            <td>社会的文脈が存在</td>
+                            <td>Step 5</td>
+                        </tr>
+                        <tr>
+                            <td>責任</td>
+                            <td>責任主体が複数</td>
+                            <td>Step 1</td>
+                        </tr>
+                        <tr>
+                            <td>精度</td>
+                            <td>間違いが不可逆</td>
+                            <td>Step 3</td>
+                        </tr>
+                        <tr>
+                            <td>状況</td>
+                            <td>心理的取消／連鎖</td>
+                            <td>Step 2・4</td>
+                        </tr>
+                        <tr>
+                            <td>時間</td>
+                            <td>未来方向への連鎖</td>
+                            <td>Step 4</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p>5軸は捨てられていません。<br>
+                    閉路構造は、5軸の「純化形」です。</p>
+            </section>
+
+            <!-- Chapter 6: 05_idk_lamp.ja.md -->
+            <section class="chapter" id="chapter-6">
+                <h1>6. idk-lamp との関係</h1>
+
+                <p>idk-lamp は、<br>
+                    判断閉路構造の下位に位置する概念です。</p>
+
+                <ul>
+                    <li>判断閉路構造：判断を閉じてよいかを決める</li>
+                    <li>idk-lamp：閉じられない状態を可視化する</li>
+                </ul>
+
+                <p>idk-lamp は原因ではありません。<br>
+                    <strong>構造の結果を示すシグナル</strong>です。
+                </p>
+
+                <p>「分からないから止まる」のではなく、<br>
+                    「閉じてはいけないから閉じない」<br>
+                    という状態を示します。</p>
+            </section>
+
+            <!-- Chapter 7: 99_notes.ja.md -->
+            <section class="chapter" id="chapter-7">
+                <h1>7. Notes / Scratchpad</h1>
+                <p>このファイルは、</p>
+                <ul>
+                    <li>思いつき</li>
+                    <li>未整理の違和感</li>
+                    <li>将来やりたいこと</li>
+                </ul>
+                <p>を雑に置く場所です。</p>
+
+                <p>構造を壊さないため、<br>
+                    ここでは結論を急がないこと。</p>
+
+                <p>例：</p>
+                <ul>
+                    <li>UI に落とすならどうなるか</li>
+                    <li>業務用途ではどこが変わるか</li>
+                    <li>BOA との関係をどう書くか</li>
+                </ul>
+
+                <h2>2025-01-12：構造がまとまり始めた日のメモ</h2>
+                <ul>
+                    <li>判断閉路構造の骨格が今日一気に立ち上がった</li>
+                    <li>5軸 → 危険条件 → 閉路ステップ の変換が自然に収束した</li>
+                    <li>途中反転の5分類が明確に見えた</li>
+                    <li>idk-lamp の位置づけが「能力の限界」ではなく「構造のシグナル」として確定した</li>
+                    <li>BOA を外側に置くべきだと判断した（階層の純度を守るため）</li>
+                </ul>
+                <p>※ これは完成ではなく、今日時点での構造化の“現在地”として記録</p>
+            </section>
+
+        </div>
+
+        <nav class="story-nav">
+            <a href="#prelude" class="story-dot" data-title="decision-closure"
+                aria-label="Jump to decision-closure"></a>
+            <a href="#chapter-1" class="story-dot" data-title="1. Overview" aria-label="Jump to Chapter 1"></a>
+            <a href="#chapter-2" class="story-dot" data-title="2. World Assumption" aria-label="Jump to Chapter 2"></a>
+            <a href="#chapter-3" class="story-dot" data-title="3. Decision Closure Structure"
+                aria-label="Jump to Chapter 3"></a>
+            <a href="#chapter-4" class="story-dot" data-title="4. Transition" aria-label="Jump to Chapter 4"></a>
+            <a href="#chapter-5" class="story-dot" data-title="5. Axes Mapping" aria-label="Jump to Chapter 5"></a>
+            <a href="#chapter-6" class="story-dot" data-title="6. idk-lamp" aria-label="Jump to Chapter 6"></a>
+            <a href="#chapter-7" class="story-dot" data-title="7. Notes" aria-label="Jump to Chapter 7"></a>
+        </nav>
+
+        <footer>
+            © 2026 idk-lamp
+        </footer>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>predictability-gate - VCDesign</title>
+    <meta name="description"
+        content="Operational boundary for deciding when not to let AI decide. A pre-model decision gate for responsibility and safety.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg-base: #0a0a0c;
+            --accent: #818CF8;
+            --text-main: #E2E8F0;
+            --text-muted: #94A3B8;
+            --link-hover-bg: rgba(129, 140, 248, 0.08);
+            --transition-fast: 0.18s ease-out;
+            --line-color: rgba(129, 140, 248, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, sans-serif;
+            /* Gothic Base */
+            line-height: 1.9;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Navigation */
+        .nav-back {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            transition: color var(--transition-fast);
+            z-index: 100;
+        }
+
+        .nav-back:hover {
+            color: var(--accent);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 680px;
+            width: 100%;
+            padding: 120px 24px 160px;
+            position: relative;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 80px 0 32px;
+            letter-spacing: 0.04em;
+            line-height: 1.4;
+            color: #fff;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 64px 0 24px;
+            letter-spacing: 0.03em;
+            color: #fff;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 48px 0 16px;
+            color: var(--text-main);
+        }
+
+        p {
+            margin-bottom: 24px;
+            color: var(--text-muted);
+            font-feature-settings: "palt";
+        }
+
+        ul {
+            padding-left: 20px;
+            margin-bottom: 32px;
+            color: var(--text-muted);
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        blockquote {
+            margin: 40px 0;
+            padding: 24px 32px;
+            border-left: 2px solid var(--accent);
+            background: rgba(129, 140, 248, 0.03);
+            font-style: italic;
+            color: var(--text-main);
+        }
+
+        strong {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        hr {
+            margin: 80px 0;
+            border: none;
+            height: 1px;
+            background: var(--line-color);
+        }
+
+        /* Story Dot Navigation */
+        .story-nav {
+            position: fixed;
+            right: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 100;
+        }
+
+        .story-dot {
+            width: 8px;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all var(--transition-fast);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .story-dot:hover,
+        .story-dot.active {
+            background-color: var(--accent);
+            transform: scale(1.2);
+        }
+
+        .story-dot::after {
+            content: attr(data-title);
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%) translateX(10px);
+            white-space: nowrap;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: all var(--transition-fast);
+        }
+
+        .story-dot:hover::after {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .chapter {
+            margin-bottom: 240px;
+            scroll-margin-top: 120px;
+        }
+
+        footer {
+            margin-top: 160px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            color: var(--text-muted);
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--line-color);
+        }
+
+        th {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 24px 0;
+            border: 1px solid var(--line-color);
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .story-nav {
+                display: none;
+            }
+
+            .container {
+                padding-top: 80px;
+            }
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('.chapter');
+            const dots = document.querySelectorAll('.story-dot');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '-40% 0px -40% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        dots.forEach(dot => {
+                            dot.classList.toggle('active', dot.getAttribute('href') === `#${id}`);
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => observer.observe(section));
+        });
+    </script>
+</head>
+
+<body>
+    <a href="/index.html" class="nav-back">← Back to Index</a>
+
+    <main class="container">
+
+        <div class="content">
+
+            <!-- Prelude: README.md -->
+            <section class="chapter" id="prelude">
+                <h1>predictability-gate</h1>
+
+                <p><strong>Operational boundary for deciding <em>when not to let AI decide</em>.</strong></p>
+
+                <p>This repository documents one concrete way to decide<br>
+                    <strong>whether an AI system should be allowed to make predictions at all</strong>,<br>
+                    *before* model building begins.
+                </p>
+                <p>It is not a product.<br>
+                    It is not a framework.<br>
+                    It is not a best practice.</p>
+                <p>It is an <strong>operational gate</strong> for stopping AI decisions<br>
+                    when responsibility, safety, or predictability cannot be guaranteed.</p>
+
+                <hr>
+
+                <h2>What this is</h2>
+                <p><code>predictability-gate</code> defines a <strong>pre-model decision gate</strong> used in real
+                    operations to answer a single question:</p>
+                <blockquote>
+                    <strong>Should this decision be delegated to AI, or not?</strong>
+                </blockquote>
+                <p>The gate exists to prevent situations where:</p>
+                <ul>
+                    <li>a model is technically feasible,</li>
+                    <li>accuracy looks acceptable,</li>
+                    <li>but <strong>a wrong prediction would cause irreversible damage</strong>.</li>
+                </ul>
+                <p>This repository focuses on <strong>stopping decisions</strong>, not optimizing models.</p>
+
+                <hr>
+
+                <h2>What this is NOT</h2>
+                <ul>
+                    <li>❌ A machine learning framework</li>
+                    <li>❌ An AI governance standard</li>
+                    <li>❌ A compliance checklist</li>
+                    <li>❌ A guarantee of safety or correctness</li>
+                </ul>
+                <p>This repository does <strong>not</strong> claim completeness or universality.</p>
+                <p>It presents <strong>one concrete operational structure</strong><br>
+                    for organizations that must carry real-world responsibility.</p>
+
+                <hr>
+
+                <h2>Core principles</h2>
+                <p>The Predictability Gate is based on four non-negotiable principles:</p>
+                <ol>
+                    <li><strong>Responsibility comes before accuracy</strong></li>
+                    <li><strong>“What happens if we are wrong?” matters more than “Can we predict?”</strong></li>
+                    <li><strong>Irreversible misses must never be delegated to AI</strong></li>
+                    <li><strong>The final decision to proceed or stop is always made by a human operator</strong></li>
+                </ol>
+                <p>If these principles cannot be satisfied, the correct outcome is <strong>not to proceed</strong>.</p>
+
+                <hr>
+
+                <h2>Scope</h2>
+                <p>This gate is designed primarily for <strong>numeric time-series AI use cases</strong>.</p>
+                <p>Cases that rely on:</p>
+                <ul>
+                    <li>sound,</li>
+                    <li>smell,</li>
+                    <li>images,</li>
+                    <li>or human sensory judgment</li>
+                </ul>
+                <p>are intentionally <strong>separated into different projects</strong><br>
+                    with dedicated safety design and evaluation methods.</p>
+                <p>Mixing these domains prematurely is explicitly avoided.</p>
+                <p>Before defining the gate, this repository starts by documenting failure patterns<br>
+                    that made this boundary necessary.</p>
+
+                <hr>
+
+                <h2>Structure of the gate</h2>
+                <p>The gate is executed within <strong>48–72 hours</strong>, before any serious modeling work.</p>
+
+                <h3>Gate components</h3>
+                <ul>
+                    <li><strong>G1 – Information content</strong><br>Do the numeric time-series contain sufficient
+                        predictive signal?</li>
+                    <li><strong>G2 – Business tolerance</strong><br>Is there an operational “escape route” when
+                        predictions are wrong (safe-side fallback or decision deferral)?</li>
+                    <li><strong>G3 – Temporal consistency</strong><br>Are results valid under time-aware validation (no
+                        leakage)?</li>
+                    <li><strong>G4 – Proxy feature potential</strong><br>Do lag, dwell time, ratios, or rollups
+                        meaningfully improve predictability?</li>
+                    <li><strong>G5 – Operational dependency & irreversibility (override gate)</strong><br>Would a *miss*
+                        cause irreversible harm (safety, quality, regulatory, or asset damage)?</li>
+                    <li><strong>G6 – Rough ROI</strong><br>Does the expected benefit justify operational cost?</li>
+                </ul>
+                <blockquote>
+                    <strong>G5 overrides all other scores.</strong><br>
+                    If a missed prediction is irreversible, the case is rejected.
+                </blockquote>
+
+                <hr>
+
+                <h2>Outcomes</h2>
+                <p>The gate produces one of four outcomes:</p>
+                <ul>
+                    <li><strong>Proceed</strong><br>→ Controlled A/B or shadow deployment</li>
+                    <li><strong>Limited pilot</strong><br>→ Restricted scope with data improvement</li>
+                    <li><strong>Stop</strong><br>→ Predictability or value not sufficient</li>
+                    <li><strong>Separate project</strong><br>→ Non-structured data or human-judgment–centric case</li>
+                </ul>
+
+                <hr>
+
+                <h2>Responsibility</h2>
+                <p>This gate does <strong>not</strong> automate acceptance.<br>
+                    The final decision is always made by an <strong>explicitly named operational owner</strong>.</p>
+                <p>This is intentional.</p>
+                <blockquote>
+                    <strong>AI does not carry responsibility.<br>
+                        People do.</strong>
+                </blockquote>
+
+                <hr>
+
+                <h2>Relationship to other concepts</h2>
+                <p>This repository is part of a broader line of thinking about boundaries and responsibility:</p>
+                <ul>
+                    <li><strong>idk-lamp</strong> — a symbolic indicator that AI should stop and defer</li>
+                    <li><strong>VCDesign / BOA / RP</strong> — design philosophies for responsibility boundaries</li>
+                </ul>
+                <p><code>predictability-gate</code> is where those ideas become <strong>operational reality</strong>.
+                </p>
+
+                <hr>
+
+                <h2>Context</h2>
+                <p>This project is designed as a practical signal that marks<br>
+                    the boundary where AI systems must stop deciding<br>
+                    and defer responsibility to humans.</p>
+                <ul>
+                    <li><a href="https://idk-lamp.org/">idk-lamp (official site)</a></li>
+                </ul>
+                <p>This work originates from ongoing exploration of<br>
+                    design, responsibility, and boundaries<br>
+                    in AI-assisted systems.</p>
+                <ul>
+                    <li><a href="https://vcdesign.org/">VCDesign</a></li>
+                </ul>
+            </section>
+
+            <!-- Chapter 1: 00_failure_cases.md -->
+            <section class="chapter" id="chapter-1">
+                <h1>1. Failure Cases</h1>
+                <p><strong>Failure Cases — Why Predictability Gate Exists</strong></p>
+
+                <blockquote>
+                    This document comes first for a reason.<br>
+                    Predictability Gate was designed by learning from these failures.
+                </blockquote>
+                <p>This document does <strong>not</strong> list detailed incidents or postmortems.<br>
+                    It documents <strong>failure patterns</strong> that repeatedly appear<br>
+                    *before* serious accidents, quality losses, or loss of trust occur.</p>
+                <p>These cases explain <strong>why predictability-gate exists</strong>.</p>
+
+                <hr>
+
+                <h2>Case 1 — Accuracy looked good, but responsibility was undefined</h2>
+                <h3>Situation</h3>
+                <ul>
+                    <li>Numeric time-series model achieved acceptable accuracy</li>
+                    <li>Validation metrics met internal thresholds</li>
+                    <li>Deployment pressure was high</li>
+                </ul>
+                <h3>What went wrong</h3>
+                <ul>
+                    <li>No clear owner for **stop / override**</li>
+                    <li>When predictions were wrong, escalation was delayed</li>
+                    <li>The system continued operating because “the model said so”</li>
+                </ul>
+                <h3>Why the gate would have stopped this</h3>
+                <ul>
+                    <li><strong>G2 (Business tolerance)</strong> was not satisfied<br>No safe fallback or decision
+                        deferral existed.</li>
+                    <li><strong>G5 (Responsibility & irreversibility)</strong> was unclear.</li>
+                </ul>
+                <h3>Lesson</h3>
+                <blockquote>
+                    Accuracy without responsibility creates silent failure.
+                </blockquote>
+
+                <hr>
+
+                <h2>Case 2 — Non-structured signals were mixed too early</h2>
+                <h3>Situation</h3>
+                <ul>
+                    <li>Sound / image features were added to numeric data</li>
+                    <li>Overall model accuracy improved</li>
+                    <li>Evaluation was done with random cross-validation</li>
+                </ul>
+                <h3>What went wrong</h3>
+                <ul>
+                    <li>Failure modes were no longer observable</li>
+                    <li>Temporal leakage was masked by mixed features</li>
+                    <li>Degradation appeared only after deployment</li>
+                </ul>
+                <h3>Why the gate would have stopped this</h3>
+                <ul>
+                    <li><strong>Scope separation rule</strong> was violated</li>
+                    <li><strong>G3 (Temporal consistency)</strong> could not be validated properly</li>
+                </ul>
+                <h3>Lesson</h3>
+                <blockquote>
+                    Mixing domains hides failure modes before it improves performance.
+                </blockquote>
+
+                <hr>
+
+                <h2>Case 3 — A missed prediction caused irreversible damage</h2>
+                <h3>Situation</h3>
+                <ul>
+                    <li>False positives were manageable</li>
+                    <li>False negatives were considered “unlikely”</li>
+                    <li>No explicit irreversibility check was performed</li>
+                </ul>
+                <h3>What went wrong</h3>
+                <ul>
+                    <li>A single miss led to:
+                        <ul>
+                            <li>Safety incident</li>
+                            <li>Quality escape</li>
+                            <li>Regulatory breach</li>
+                        </ul>
+                    </li>
+                    <li>Rollback was not possible</li>
+                </ul>
+                <h3>Why the gate would have stopped this</h3>
+                <ul>
+                    <li><strong>G5 override</strong><br>Missed prediction was **irreversible**.</li>
+                </ul>
+                <h3>Lesson</h3>
+                <blockquote>
+                    Low probability does not reduce irreversible risk.
+                </blockquote>
+
+                <hr>
+
+                <h2>Case 4 — Pilot scope quietly expanded</h2>
+                <h3>Situation</h3>
+                <ul>
+                    <li>Started as a limited pilot</li>
+                    <li>Gradually expanded “because it worked”</li>
+                    <li>No formal re-approval step existed</li>
+                </ul>
+                <h3>What went wrong</h3>
+                <ul>
+                    <li>Conditions changed outside evaluated range</li>
+                    <li>Performance degraded silently</li>
+                    <li>No one noticed until damage occurred</li>
+                </ul>
+                <h3>Why the gate would have stopped this</h3>
+                <ul>
+                    <li><strong>Limited pilot rule</strong> would have required re-evaluation</li>
+                    <li><strong>Impact radius</strong> was not explicitly defined</li>
+                </ul>
+                <h3>Lesson</h3>
+                <blockquote>
+                    Expansion without re-gating is uncontrolled deployment.
+                </blockquote>
+
+                <hr>
+
+                <h2>Case 5 — The system could not be stopped</h2>
+                <h3>Situation</h3>
+                <ul>
+                    <li>Automated decision was integrated into operations</li>
+                    <li>Manual override existed only on paper</li>
+                </ul>
+                <h3>What went wrong</h3>
+                <ul>
+                    <li>Operators hesitated to intervene</li>
+                    <li>Stopping the system was socially or procedurally difficult</li>
+                    <li>Damage accumulated over time</li>
+                </ul>
+                <h3>Why the gate would have stopped this</h3>
+                <ul>
+                    <li><strong>Precondition check</strong> for stop authority would have failed</li>
+                </ul>
+                <h3>Lesson</h3>
+                <blockquote>
+                    A system that cannot be stopped is already unsafe.
+                </blockquote>
+
+                <hr>
+
+                <h2>Common pattern across failures</h2>
+                <p>Across all cases:</p>
+                <ul>
+                    <li>Models were *technically valid*</li>
+                    <li>Failures were *organizational and operational*</li>
+                    <li>Responsibility boundaries were unclear</li>
+                </ul>
+                <p>Predictability Gate exists to surface these issues<br>
+                    **before** model construction begins.</p>
+            </section>
+
+            <!-- Chapter 2: 01_overview.md -->
+            <section class="chapter" id="chapter-2">
+                <h1>2. Overview</h1>
+                <p><strong>Overview — What is Predictability Gate</strong></p>
+
+                <p>Predictability Gate is an **operational decision boundary**.</p>
+                <p>It exists to answer one question *before* any model is built:</p>
+                <blockquote>
+                    Should this decision be delegated to AI, or not?
+                </blockquote>
+                <p>This gate does not optimize models.<br>
+                    It prevents **irreversible failures caused by wrong predictions**.</p>
+                <p>Key characteristics:</p>
+                <ul>
+                    <li>Executed in **48–72 hours**</li>
+                    <li>Applied **before** PoC or modeling</li>
+                    <li>Focuses on **responsibility, not accuracy**</li>
+                    <li>Explicitly allows the decision: **do not proceed**</li>
+                </ul>
+                <p>Predictability Gate is not a blocker.<br>
+                    It is a **safety boundary** that protects operations, people, and trust.</p>
+
+                <hr>
+
+                <h3>Context & Roots</h3>
+                <p>This gate is not an isolated idea.<br>
+                    It is an operational outcome of long-term thinking about boundaries and responsibility.</p>
+                <p>If you want to understand **why these boundaries must exist**, see:</p>
+                <ul>
+                    <li><a href="https://vcdesign.org/">VCDesign</a> — boundary-oriented design philosophy</li>
+                    <li><a href="https://idk-lamp.org/">idk-lamp</a> — a symbol for stopping AI decisions safely</li>
+                </ul>
+            </section>
+
+            <!-- Chapter 3: 02_gate_definition.md -->
+            <section class="chapter" id="chapter-3">
+                <h1>3. Gate Definition</h1>
+                <p><strong>Gate Definition</strong></p>
+
+                <p>Predictability Gate consists of six evaluation items (G1–G6).</p>
+
+                <h2>G1 — Information Content</h2>
+                <p>Do the numeric time-series contain sufficient predictive signal?</p>
+                <p>Typical indicators:</p>
+                <ul>
+                    <li>Target entropy</li>
+                    <li>Sum of mutual information (top features)</li>
+                </ul>
+
+                <h2>G2 — Business Tolerance</h2>
+                <p>Is there an operational escape route when predictions are wrong?</p>
+                <p>Examples:</p>
+                <ul>
+                    <li>Safe-side fallback</li>
+                    <li>Decision deferral</li>
+                    <li>Human confirmation</li>
+                </ul>
+
+                <h2>G3 — Temporal Consistency</h2>
+                <p>Are results valid under time-aware validation?</p>
+                <p>Checks include:</p>
+                <ul>
+                    <li>Time-series cross validation</li>
+                    <li>Shuffle degradation</li>
+                    <li>Leakage suspicion</li>
+                </ul>
+
+                <h2>G4 — Proxy Feature Potential</h2>
+                <p>Is there room for improvement using proxy features?</p>
+                <p>Examples:</p>
+                <ul>
+                    <li>Lag features</li>
+                    <li>Dwell time</li>
+                    <li>Ratios</li>
+                    <li>Rollups</li>
+                </ul>
+
+                <h2>G5 — Operational Dependency & Irreversibility (Override)</h2>
+                <p>Would a **miss** cause irreversible damage?</p>
+                <p>If yes:</p>
+                <blockquote>
+                    <strong>This case must not be handled by numeric time-series AI.</strong>
+                </blockquote>
+                <p>G5 overrides all other items.</p>
+
+                <h2>G6 — Rough ROI</h2>
+                <p>Does expected benefit justify operational cost?</p>
+                <p>This is a coarse check, not financial approval.</p>
+            </section>
+
+            <!-- Chapter 4: 03_templates.md -->
+            <section class="chapter" id="chapter-4">
+                <h1>4. Templates</h1>
+                <p><strong>Templates</strong></p>
+
+                <h2>Case Card (5 minutes)</h2>
+                <ul>
+                    <li>Line / Equipment:</li>
+                    <li>Target KPI:</li>
+                    <li>Evaluation period:</li>
+                </ul>
+                <h3>Difficulty Map</h3>
+                <ul>
+                    <li>Data structure: S1 / S2 / S3</li>
+                    <li>Field dependency: D1 / D2 / D3</li>
+                </ul>
+                <p>Initial classification:</p>
+                <ul>
+                    <li>Numeric time-series</li>
+                    <li>Conditional</li>
+                    <li>Separate project</li>
+                </ul>
+            </section>
+
+            <!-- Chapter 5: 04_scoring.md -->
+            <section class="chapter" id="chapter-5">
+                <h1>5. Scoring</h1>
+                <p><strong>Scoring Rules</strong></p>
+                <p>Scores are **reference only**.</p>
+                <h2>Absolute Rule</h2>
+                <p>If **G5 = irreversible miss**, the case is rejected regardless of total score.</p>
+                <p>Scoring exists to support discussion,<br>
+                    not to override responsibility.</p>
+            </section>
+
+            <!-- Chapter 6: 05_irreversibility.md -->
+            <section class="chapter" id="chapter-6">
+                <h1>6. Irreversibility</h1>
+                <p><strong>Irreversibility</strong></p>
+                <p>Irreversible misses include:</p>
+
+                <h2>Safety</h2>
+                <ul>
+                    <li>Entrapment</li>
+                    <li>Burns</li>
+                    <li>Leaks</li>
+                    <li>Runaway conditions</li>
+                </ul>
+
+                <h2>Quality</h2>
+                <ul>
+                    <li>Market leakage</li>
+                    <li>Recall</li>
+                    <li>Brand damage</li>
+                </ul>
+
+                <h2>Regulation</h2>
+                <ul>
+                    <li>Environmental limits</li>
+                    <li>Labor safety</li>
+                    <li>Medical / food compliance</li>
+                </ul>
+
+                <h2>Assets</h2>
+                <ul>
+                    <li>Equipment destruction</li>
+                    <li>Long downtime</li>
+                </ul>
+                <p>If these risks cannot be mitigated by logs alone,<br>
+                    the case must be separated.</p>
+            </section>
+
+            <!-- Chapter 7: 06_sop_numeric.md -->
+            <section class="chapter" id="chapter-7">
+                <h1>7. SOP Numeric</h1>
+                <p><strong>SOP — Numeric Time-Series Cases</strong></p>
+
+                <p>Day 0</p>
+                <ul>
+                    <li>Case card</li>
+                    <li>Difficulty map</li>
+                </ul>
+                <p>Day 0–1</p>
+                <ul>
+                    <li>Data extraction</li>
+                    <li>MI / CV preparation</li>
+                </ul>
+                <p>Day 1–3</p>
+                <ul>
+                    <li>G1–G6 evaluation</li>
+                    <li>G5 override check</li>
+                    <li>Operator comment</li>
+                </ul>
+                <p>Day 3</p>
+                <ul>
+                    <li>Decision review</li>
+                </ul>
+            </section>
+
+            <!-- Chapter 8: 07_sop_non_structured.md -->
+            <section class="chapter" id="chapter-8">
+                <h1>8. SOP Non-Struct</h1>
+                <p><strong>SOP — Non-Structured Data Cases (Minimum)</strong></p>
+
+                <ol>
+                    <li>Separate project</li>
+                    <li>Safety-first design</li>
+                    <li>Limited pilot only</li>
+                    <li>Stability KPI approval</li>
+                    <li>Operator sign-off</li>
+                </ol>
+            </section>
+
+            <!-- Chapter 9: 08_consensus.md -->
+            <section class="chapter" id="chapter-9">
+                <h1>9. Consensus</h1>
+                <p><strong>Consensus Building</strong></p>
+
+                <p>Start with:</p>
+                <ul>
+                    <li>Irreversible risk</li>
+                    <li>Responsibility design</li>
+                </ul>
+                <p>Do not start with:</p>
+                <ul>
+                    <li>Accuracy</li>
+                    <li>Model performance</li>
+                </ul>
+                <p>Always close with numbers:</p>
+                <ul>
+                    <li>Degradation rate</li>
+                    <li>Reproducibility</li>
+                    <li>Escape routes</li>
+                </ul>
+            </section>
+
+            <!-- Chapter 10: 09_handover_non_structured.md -->
+            <section class="chapter" id="chapter-10">
+                <h1>10. Handover</h1>
+                <p><strong>Handover Boundary — Non-Structured Data Cases</strong></p>
+
+                <p>This document defines the **handover boundary** for cases that were intentionally excluded<br>
+                    from <code>predictability-gate</code> due to reliance on non-structured data<br>
+                    (sound, smell, images, or human sensory judgment).</p>
+                <p>This is **not an implementation guide**.<br>
+                    It exists to prevent irreversible failures<br>
+                    when responsibility shifts across teams.</p>
+
+                <hr>
+
+                <h2>Why this handover exists</h2>
+                <p>The case was excluded **not because it is difficult**, but because:</p>
+                <ul>
+                    <li>A missed prediction could cause **irreversible harm**</li>
+                    <li>The decision cannot be safely reduced to numeric time-series alone</li>
+                    <li>Responsibility cannot be clearly enforced within the original gate</li>
+                </ul>
+                <p>This handover is a **risk-aware transfer**, not a rejection.</p>
+
+                <hr>
+
+                <h2>What was confirmed before handover</h2>
+                <p>Before separating this case, the following were explicitly identified:</p>
+                <ul>
+                    <li>❌ Numeric time-series alone cannot prevent irreversible misses</li>
+                    <li>❌ Logs alone cannot guarantee safe rollback</li>
+                    <li>❌ Mixing structured and non-structured data would hide failure modes</li>
+                </ul>
+                <p>The decision to separate was made **before model construction**.</p>
+
+                <hr>
+
+                <h2>Identified irreversible risks</h2>
+                <p>The following categories were flagged as potentially irreversible if missed:</p>
+
+                <h3>Safety</h3>
+                <p>Entrapment, burns, leaks, runaway conditions</p>
+
+                <h3>Quality</h3>
+                <p>Market leakage, recalls, brand damage</p>
+
+                <h3>Regulation</h3>
+                <p>Environmental limits, labor safety, medical / food compliance</p>
+
+                <h3>Assets</h3>
+                <p>Equipment destruction, long downtime</p>
+                <p>If any of these risks cannot be mitigated by logs or alarms alone,<br>
+                    the case must not return to numeric-only handling.</p>
+
+                <hr>
+
+                <h2>Preconditions for any non-structured approach</h2>
+                <p>Before any modeling or data collection begins,<br>
+                    the following **must be explicitly defined**:</p>
+
+                <h3>Authority & Control</h3>
+                <ul>
+                    <li>Who has the **authority to stop the system**</li>
+                    <li>How and when manual override is triggered</li>
+                </ul>
+
+                <h3>Rollback</h3>
+                <ul>
+                    <li>Whether rollback is possible</li>
+                    <li>What the rollback target state is</li>
+                    <li>How long rollback takes</li>
+                </ul>
+
+                <h3>Redundancy</h3>
+                <ul>
+                    <li>Whether **double detection** is required</li>
+                    <li>What happens when detectors disagree</li>
+                </ul>
+
+                <h3>Scope limitation</h3>
+                <ul>
+                    <li>Initial deployment **must be limited**
+                        <ul>
+                            <li>Shadow mode</li>
+                            <li>Restricted line</li>
+                            <li>Restricted time window</li>
+                        </ul>
+                    </li>
+                </ul>
+                <blockquote>
+                    <strong>Full-scale deployment as the first step is prohibited.</strong>
+                </blockquote>
+
+                <hr>
+
+                <h2>Minimum evaluation requirements</h2>
+                <p>Any non-structured approach must pass **all** of the following<br>
+                    before being considered for expansion:</p>
+                <ul>
+                    <li><strong>Condition degradation rate ≤ 15%</strong></li>
+                    <li><strong>Feature reproducibility ≥ 60%</strong></li>
+                    <li><strong>Impact radius clearly identified</strong>
+                        <ul>
+                            <li>Which line</li>
+                            <li>Which shift</li>
+                            <li>Which operational unit</li>
+                        </ul>
+                    </li>
+                </ul>
+                <p>If these cannot be demonstrated,<br>
+                    the system must remain limited or stopped.</p>
+
+                <hr>
+
+                <h2>What is intentionally NOT provided</h2>
+                <p>This handover does **not** include:</p>
+                <ul>
+                    <li>Model architectures</li>
+                    <li>Feature extraction methods</li>
+                    <li>Performance targets</li>
+                    <li>Implementation timelines</li>
+                </ul>
+                <p>Those belong to the receiving team’s responsibility.</p>
+                <p>This document transfers **risk context**, not solutions.</p>
+
+                <hr>
+
+                <h2>Responsibility statement</h2>
+                <p>From this point forward:</p>
+                <ul>
+                    <li>The original <code>predictability-gate</code> scope ends here</li>
+                    <li>The receiving team becomes the **primary risk owner**</li>
+                    <li>All further decisions must explicitly name a responsible operator</li>
+                </ul>
+                <p>This handover does **not** absolve responsibility.<br>
+                    It **reassigns it clearly**.</p>
+
+                <hr>
+
+                <h2>Final note</h2>
+                <p>Avoidance is not abandonment.<br>
+                    This boundary exists so that<br>
+                    non-structured data can be handled **deliberately, safely, and honestly**.</p>
+                <p>If at any point responsibility or irreversibility becomes unclear,<br>
+                    the correct action is to **stop and reassess**.</p>
+            </section>
+
+        </div>
+
+        <nav class="story-nav">
+            <a href="#prelude" class="story-dot" data-title="predictability-gate" aria-label="Jump to Introduction"></a>
+            <a href="#chapter-1" class="story-dot" data-title="1. Failure Cases" aria-label="Jump to Chapter 1"></a>
+            <a href="#chapter-2" class="story-dot" data-title="2. Overview" aria-label="Jump to Chapter 2"></a>
+            <a href="#chapter-3" class="story-dot" data-title="3. Gate Definition" aria-label="Jump to Chapter 3"></a>
+            <a href="#chapter-4" class="story-dot" data-title="4. Templates" aria-label="Jump to Chapter 4"></a>
+            <a href="#chapter-5" class="story-dot" data-title="5. Scoring" aria-label="Jump to Chapter 5"></a>
+            <a href="#chapter-6" class="story-dot" data-title="6. Irreversibility" aria-label="Jump to Chapter 6"></a>
+            <a href="#chapter-7" class="story-dot" data-title="7. SOP Numeric" aria-label="Jump to Chapter 7"></a>
+            <a href="#chapter-8" class="story-dot" data-title="8. SOP Non-Struct" aria-label="Jump to Chapter 8"></a>
+            <a href="#chapter-9" class="story-dot" data-title="9. Consensus" aria-label="Jump to Chapter 9"></a>
+            <a href="#chapter-10" class="story-dot" data-title="10. Handover" aria-label="Jump to Chapter 10"></a>
+        </nav>
+
+        <footer>
+            © 2026 idk-lamp
+        </footer>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>predictability-gate - VCDesign</title>
+    <meta name="description" content="AIに「判断させない」ための運用上の境界定義。モデル構築前に、その判断をAIに委ねてよいかを決めるための意思決定ゲート。">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg-base: #0a0a0c;
+            --accent: #818CF8;
+            --text-main: #E2E8F0;
+            --text-muted: #94A3B8;
+            --link-hover-bg: rgba(129, 140, 248, 0.08);
+            --transition-fast: 0.18s ease-out;
+            --line-color: rgba(129, 140, 248, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, sans-serif;
+            /* Gothic Base */
+            line-height: 1.9;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Navigation */
+        .nav-back {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            transition: color var(--transition-fast);
+            z-index: 100;
+        }
+
+        .nav-back:hover {
+            color: var(--accent);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 680px;
+            width: 100%;
+            padding: 120px 24px 160px;
+            position: relative;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 80px 0 32px;
+            letter-spacing: 0.04em;
+            line-height: 1.4;
+            color: #fff;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 64px 0 24px;
+            letter-spacing: 0.03em;
+            color: #fff;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 48px 0 16px;
+            color: var(--text-main);
+        }
+
+        p {
+            margin-bottom: 24px;
+            color: var(--text-muted);
+            font-feature-settings: "palt";
+        }
+
+        ul {
+            padding-left: 20px;
+            margin-bottom: 32px;
+            color: var(--text-muted);
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        blockquote {
+            margin: 40px 0;
+            padding: 24px 32px;
+            border-left: 2px solid var(--accent);
+            background: rgba(129, 140, 248, 0.03);
+            font-style: italic;
+            color: var(--text-main);
+        }
+
+        strong {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        hr {
+            margin: 80px 0;
+            border: none;
+            height: 1px;
+            background: var(--line-color);
+        }
+
+        /* Story Dot Navigation */
+        .story-nav {
+            position: fixed;
+            right: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 100;
+        }
+
+        .story-dot {
+            width: 8px;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all var(--transition-fast);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .story-dot:hover,
+        .story-dot.active {
+            background-color: var(--accent);
+            transform: scale(1.2);
+        }
+
+        .story-dot::after {
+            content: attr(data-title);
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%) translateX(10px);
+            white-space: nowrap;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: all var(--transition-fast);
+        }
+
+        .story-dot:hover::after {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .chapter {
+            margin-bottom: 240px;
+            scroll-margin-top: 120px;
+        }
+
+        footer {
+            margin-top: 160px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            color: var(--text-muted);
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--line-color);
+        }
+
+        th {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 24px 0;
+            border: 1px solid var(--line-color);
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .story-nav {
+                display: none;
+            }
+
+            .container {
+                padding-top: 80px;
+            }
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('.chapter');
+            const dots = document.querySelectorAll('.story-dot');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '-40% 0px -40% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        dots.forEach(dot => {
+                            dot.classList.toggle('active', dot.getAttribute('href') === `#${id}`);
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => observer.observe(section));
+        });
+    </script>
+</head>
+
+<body>
+    <a href="/ja/index.html" class="nav-back">← Back to Index</a>
+
+    <main class="container">
+
+        <div class="content">
+
+            <!-- Prelude: README_ja.md -->
+            <section class="chapter" id="prelude">
+                <h1>predictability-gate</h1>
+                <p>
+                    <strong>AIに「判断させない」ための運用上の境界定義</strong>
+                </p>
+
+                <p>このリポジトリは、<br>
+                    AIモデルを作り始める<strong>前</strong>に、</p>
+
+                <blockquote>
+                    <strong>その判断を AI に委ねてよいかどうか</strong>
+                </blockquote>
+
+                <p>を決めるための、<br>
+                    <strong>運用上の Gate（関門）</strong>を記録したものです。
+                </p>
+
+                <p>これはプロダクトではありません。<br>
+                    フレームワークでもありません。<br>
+                    ベストプラクティスでもありません。</p>
+
+                <p><strong>責任・安全・予測可能性が保証できない場合に、<br>
+                        AI の判断を止めるための運用構造</strong>です。</p>
+
+                <hr>
+
+                <h2>これは何か（What this is）</h2>
+                <p><code>predictability-gate</code> は、実務の中で使われている<br>
+                    <strong>事前判定用の意思決定ゲート</strong>です。
+                </p>
+
+                <p>問いは一つだけです。</p>
+
+                <blockquote>
+                    <strong>この判断を、AI に委ねてよいか？</strong>
+                </blockquote>
+
+                <p>この Gate は、次のような状況を防ぐために存在します。</p>
+
+                <ul>
+                    <li>技術的にはモデルが作れる</li>
+                    <li>精度もそれなりに出ている</li>
+                    <li>しかし <strong>一度の誤判定が、取り返しのつかない結果を招く</strong></li>
+                </ul>
+
+                <p>本リポジトリは<br>
+                    <strong>モデルを良くするための資料ではなく、<br>
+                        判断を止めるための構造</strong>を扱います。
+                </p>
+
+                <hr>
+
+                <h2>これは何ではないか（What this is NOT）</h2>
+                <ul>
+                    <li>❌ 機械学習フレームワーク</li>
+                    <li>❌ AIガバナンス標準</li>
+                    <li>❌ コンプライアンスチェックリスト</li>
+                    <li>❌ 安全性を保証するもの</li>
+                </ul>
+
+                <p>このリポジトリは<br>
+                    <strong>万能性や完全性を主張しません</strong>。
+                </p>
+
+                <p>あくまで、<br>
+                    <strong>現実の責任を背負う現場で使われた一つの構造例</strong>です。
+                </p>
+
+                <hr>
+
+                <h2>基本原則（Core principles）</h2>
+                <p>Predictability Gate は、次の原則を前提とします。</p>
+
+                <ol>
+                    <li><strong>精度よりも責任を優先する</strong></li>
+                    <li><strong>「当たるか」より「外したらどうなるか」を問う</strong></li>
+                    <li><strong>不可逆な見逃しは、AIに委ねてはならない</strong></li>
+                    <li><strong>最終判断は、必ず人が引き受ける</strong></li>
+                </ol>
+
+                <p>これらが満たせない場合、<br>
+                    <strong>正しい結論は「使わない」ことです。</strong>
+                </p>
+
+                <hr>
+
+                <h2>適用範囲（Scope）</h2>
+                <p>本 Gate は、主に<br>
+                    <strong>数値時系列データを扱う AI 案件</strong>を対象としています。
+                </p>
+
+                <p>以下を主要判断軸とする案件は、<br>
+                    意図的に <strong>別プロジェクト</strong> として分離します。</p>
+
+                <ul>
+                    <li>音</li>
+                    <li>におい</li>
+                    <li>画像</li>
+                    <li>人の感覚・勘・経験</li>
+                </ul>
+
+                <p>これらを早期に混在させないことは、<br>
+                    安全と成功確率のための<strong>意図的な設計</strong>です。</p>
+
+                <p>本リポジトリでは、Gate 定義の前に<br>
+                    <strong>なぜこの境界が必要になったのか（失敗パターン）</strong> を明示します。
+                </p>
+
+                <hr>
+
+                <h2>Gate の構成（Structure）</h2>
+                <p>Predictability Gate は、<br>
+                    <strong>48〜72時間以内</strong>に以下の観点で評価されます。
+                </p>
+
+                <h3>Gate 項目</h3>
+
+                <ul>
+                    <li><strong>G1：情報量</strong><br>
+                        数値時系列に、予測に足る情報が含まれているか</li>
+                    <li><strong>G2：業務許容下限</strong><br>
+                        誤判定時に<br>
+                        「安全側に倒れる」「判断保留できる」逃げ道があるか</li>
+                    <li><strong>G3：時序整合</strong><br>
+                        時系列 CV やシャッフル検証により、リークがないか</li>
+                    <li><strong>G4：代理変数の可能性</strong><br>
+                        ラグ・滞留・比率・ロールアップ等で改善余地があるか</li>
+                    <li><strong>G5：現場依存度＋不可逆性（最優先）</strong><br>
+                        見逃しが、安全・品質・法規・資産に対して<br>
+                        <strong>不可逆な影響を与えないか</strong>
+                    </li>
+                    <li><strong>G6：ROI（概算）</strong><br>
+                        便益と運用コストのバランスが取れているか</li>
+                </ul>
+
+                <blockquote>
+                    <strong>G5 は他のすべてに優先します。</strong><br>
+                    見逃しが不可逆な場合、この案件は採用されません。
+                </blockquote>
+
+                <hr>
+
+                <h2>判定結果（Outcomes）</h2>
+                <p>Gate の結果は、次のいずれかになります。</p>
+
+                <ul>
+                    <li><strong>進める</strong><br>
+                        → シャドー運用や A/B テストへ</li>
+                    <li><strong>限定パイロット</strong><br>
+                        → 限定範囲での検証とデータ改善</li>
+                    <li><strong>やめる</strong><br>
+                        → 予測可能性または価値が不足</li>
+                    <li><strong>別案件化</strong><br>
+                        → 非構造データ／人判断前提の専用ルートへ</li>
+                </ul>
+
+                <hr>
+
+                <h2>責任の所在（Responsibility）</h2>
+                <p>Predictability Gate は、<br>
+                    <strong>自動承認の仕組みではありません。</strong>
+                </p>
+
+                <p>最終的な判断は、<br>
+                    <strong>運用責任者が Gate 結果を確認した上で行います。</strong>
+                </p>
+
+                <p>これは次の立場表明です。</p>
+
+                <blockquote>
+                    <strong>AI は責任を取らない。<br>
+                        責任を取るのは人間である。</strong>
+                </blockquote>
+
+                <hr>
+
+                <h2>他の概念との関係</h2>
+                <p>このリポジトリは、<br>
+                    境界と責任を扱う一連の思想とつながっています。</p>
+
+                <ul>
+                    <li><strong>idk-lamp</strong><br>
+                        AI が「分からない」と止まるための象徴</li>
+                    <li><strong>VCDesign / BOA / RP</strong><br>
+                        責任と境界を設計するための思想群</li>
+                </ul>
+
+                <p><code>predictability-gate</code> は、<br>
+                    それらを <strong>運用の現場で実体化した場所</strong>です。</p>
+
+                <hr>
+
+                <h2>利用について（Usage philosophy）</h2>
+                <p>このリポジトリは自由に参照できます。</p>
+
+                <ul>
+                    <li>読んでもよい</li>
+                    <li>参考にしてもよい</li>
+                    <li>使わなくてもよい</li>
+                </ul>
+
+                <p>ただし、</p>
+
+                <blockquote>
+                    <strong>適用した結果についての責任は、<br>
+                        利用者自身が引き受けるものとします。</strong>
+                </blockquote>
+
+                <p>保証はありません。<br>
+                    サポート義務もありません。</p>
+
+                <hr>
+
+                <h2>なぜ公開するのか（Why public）</h2>
+                <p>なぜなら、</p>
+
+                <blockquote>
+                    <strong>AI を作る方法は無数にあるが、<br>
+                        AI を「使わない」と判断する方法は<br>
+                        ほとんど共有されていない</strong>
+                </blockquote>
+
+                <p>からです。</p>
+
+                <p>これは、その空白を<br>
+                    <strong>明示的な構造として残す試み</strong>です。
+                </p>
+
+                <hr>
+
+                <h2>ステータス（Status）</h2>
+                <p>このリポジトリは、意図的に最小構成です。</p>
+
+                <p>更新されるかもしれません。<br>
+                    更新されないかもしれません。</p>
+
+                <p>どちらも問題ありません。</p>
+
+                <hr>
+
+                <h3>著者メモ</h3>
+                <p>これは正解集ではありません。<br>
+                    <strong>AI を止めるという判断を、<br>
+                        現場で壊れない形に固定した記録</strong>です。
+                </p>
+
+                <p>合わなければ使わなくて構いません。<br>
+                    それでも「ここに境界がある」ことには意味があります。</p>
+
+                <hr>
+
+                <h2>Context</h2>
+                <p>このプロジェクトは、AIが判断を止め、<br>
+                    人間の責任へと委ねるべき境界を可視化するための<br>
+                    実践的なシグナルとして設計されています。</p>
+
+                <ul>
+                    <li>idk-lamp（公式サイト）<br>
+                        <a href="https://idk-lamp.org/ja">https://idk-lamp.org/ja</a>
+                    </li>
+                </ul>
+
+                <p>この取り組みは、AI支援システムにおける<br>
+                    設計・責任・境界のあり方を探究する<br>
+                    設計思想 VCDesign から生まれました。</p>
+
+                <ul>
+                    <li>VCDesign<br>
+                        <a href="https://vcdesign.org/ja">https://vcdesign.org/ja</a>
+                    </li>
+                </ul>
+
+                <p>本リポジトリは単体でも利用・理解できます。<br>
+                    事前知識は必要ありません。</p>
+            </section>
+
+            <!-- Chapter 1: 00_failure_cases.ja.md -->
+            <section class="chapter" id="chapter-1">
+                <h1>1. Failure Cases</h1>
+                <p><strong>Predictability Gate が存在する理由</strong></p>
+
+                <blockquote>
+                    この文書が最初にあるのには理由があります。<br>
+                    Predictability Gate は、これらの失敗から学んで設計されました。
+                </blockquote>
+
+                <p>この文書は、詳細な事故レポートやポストモーテムではありません。</p>
+
+                <p>深刻な事故、品質低下、信頼の喪失が起きる<strong>前</strong>に、<br>
+                    繰り返し現れる <strong>失敗のパターン</strong> を記録したものです。</p>
+
+                <p>これらのケースは <strong>なぜ predictability-gate が存在するのか</strong> を説明します。</p>
+
+                <hr>
+
+                <h2>Case 1 — 精度は良かったが、責任が未定義だった</h2>
+
+                <h3>状況</h3>
+                <ul>
+                    <li>数値時系列モデルが許容できる精度を達成した</li>
+                    <li>検証メトリクスも内部基準を満たしていた</li>
+                    <li>導入へのプレッシャーが高かった</li>
+                </ul>
+
+                <h3>何が起きたか</h3>
+                <ul>
+                    <li><strong>停止・介入（Override）</strong> のオーナーが不在だった</li>
+                    <li>予測が外れたとき、エスカレーションが遅れた</li>
+                    <li>「モデルがそう言っているから」という理由でシステムが稼働し続けた</li>
+                </ul>
+
+                <h3>なぜ Gate なら防げたか</h3>
+                <ul>
+                    <li><strong>G2（業務許容下限）</strong> を満たしていない<br>
+                        安全なフォールバックや、判断の留保が存在しなかった。</li>
+                    <li><strong>G5（責任と不可逆性）</strong> が不明確だった。</li>
+                </ul>
+
+                <h3>教訓</h3>
+                <blockquote>
+                    責任なき精度は、静かな失敗を生む。
+                </blockquote>
+
+                <hr>
+
+                <h2>Case 2 — 非構造化シグナルを早く混ぜすぎた</h2>
+
+                <h3>状況</h3>
+                <ul>
+                    <li>数値データに、音声や画像の特徴量を追加した</li>
+                    <li>全体的なモデル精度は向上した</li>
+                    <li>ランダムな交差検証（CV）で評価が行われた</li>
+                </ul>
+
+                <h3>何が起きたか</h3>
+                <ul>
+                    <li>失敗モードが観測不可能になった</li>
+                    <li>時間的なリークが、混合された特徴量によって隠蔽された</li>
+                    <li>デプロイ後に初めて劣化が発覚した</li>
+                </ul>
+
+                <h3>なぜ Gate なら防げたか</h3>
+                <ul>
+                    <li><strong>適用範囲（Scope）の分離ルール</strong> に違反している</li>
+                    <li><strong>G3（時序整合）</strong> が正しく検証できなかった</li>
+                </ul>
+
+                <h3>教訓</h3>
+                <blockquote>
+                    ドメインを混ぜることは、性能を上げる前に「失敗モード」を隠してしまう。
+                </blockquote>
+
+                <hr>
+
+                <h2>Case 3 — 一度の予測ミスが取り返しのつかない損害を生んだ</h2>
+
+                <h3>状況</h3>
+                <ul>
+                    <li>誤検知（False Positive）は管理可能だった</li>
+                    <li>見逃し（False Negative）は「確率的に低い」とされた</li>
+                    <li>明示的な不可逆性チェックは行われなかった</li>
+                </ul>
+
+                <h3>何が起きたか</h3>
+                <ul>
+                    <li>たった一度の見逃しが以下を招いた：
+                        <ul>
+                            <li>安全事故</li>
+                            <li>品質流出</li>
+                            <li>法的違反</li>
+                        </ul>
+                    </li>
+                    <li>ロールバック（取り消し）が不可能だった</li>
+                </ul>
+
+                <h3>なぜ Gate なら防げたか</h3>
+                <ul>
+                    <li><strong>G5 Override</strong><br>
+                        予測の見逃しが <strong>不可逆</strong> であるため。</li>
+                </ul>
+
+                <h3>教訓</h3>
+                <blockquote>
+                    確率が低くても、不可逆なリスクは減らない。
+                </blockquote>
+
+                <hr>
+
+                <h2>Case 4 — パイロット範囲が静かに拡大した</h2>
+
+                <h3>状況</h3>
+                <ul>
+                    <li>限定的なパイロットとして始まった</li>
+                    <li>「うまくいっているから」という理由で徐々に拡大した</li>
+                    <li>正式な再承認ステップが存在しなかった</li>
+                </ul>
+
+                <h3>何が起きたか</h3>
+                <ul>
+                    <li>条件が、評価された範囲の外に変わった</li>
+                    <li>性能が静かに劣化した</li>
+                    <li>損害が発生するまで誰も気づかなかった</li>
+                </ul>
+
+                <h3>なぜ Gate なら防げたか</h3>
+                <ul>
+                    <li><strong>限定パイロットルール</strong> により、再評価が求められたはず</li>
+                    <li><strong>影響半径</strong> が明示的に定義されていなかった</li>
+                </ul>
+
+                <h3>教訓</h3>
+                <blockquote>
+                    Gate なき拡大は、制御不能なデプロイである。
+                </blockquote>
+
+                <hr>
+
+                <h2>Case 5 — システムを止められなかった</h2>
+
+                <h3>状況</h3>
+                <ul>
+                    <li>自動化された判断が業務に組み込まれた</li>
+                    <li>手動介入は手順書の上にしか存在しなかった</li>
+                </ul>
+
+                <h3>何が起きたか</h3>
+                <ul>
+                    <li>オペレーターが介入を躊躇した</li>
+                    <li>システムを止めることが、社会的・手続き的に困難だった</li>
+                    <li>時間とともに損害が蓄積した</li>
+                </ul>
+
+                <h3>なぜ Gate なら防げたか</h3>
+                <ul>
+                    <li>停止権限に関する <strong>前提条件チェック</strong> で落ちていたはず</li>
+                </ul>
+
+                <h3>教訓</h3>
+                <blockquote>
+                    止められないシステムは、その時点で安全ではない。
+                </blockquote>
+
+                <hr>
+
+                <h2>全ケースに共通するパターン</h2>
+                <p>すべてのケースにおいて：</p>
+
+                <ul>
+                    <li>モデルは <em>技術的には妥当</em> だった</li>
+                    <li>失敗は <em>組織的・運用的</em> なものだった</li>
+                    <li>責任の境界が不明確だった</li>
+                </ul>
+
+                <p>Predictability Gate は、モデルを作り始める <strong>前</strong> に<br>
+                    これらの問題を表面化させるために存在します。</p>
+
+                <hr>
+
+                <h2>重要な注意</h2>
+                <p>これらのケースは意図的に抽象化されています。</p>
+
+                <p>これらは以下ではありません：</p>
+                <ul>
+                    <li>事故報告書</li>
+                    <li>責任追及</li>
+                    <li>完全な全史</li>
+                </ul>
+
+                <p>これらは <strong>認識パターン</strong> です。</p>
+
+                <p>もしこれらのケースに見覚えがあるなら、<br>
+                    正しい対応は <strong>モデルを最適化することではなく</strong>、<br>
+                    <strong>AI に判断させるべきかを再考すること</strong> です。
+                </p>
+
+            </section>
+
+            <!-- Chapter 2: 01_overview.ja.md -->
+            <section class="chapter" id="chapter-2">
+                <h1>2. Overview</h1>
+                <p><strong>Predictability Gate とは</strong></p>
+
+                <p>Predictability Gate は、<strong>運用上の意思決定境界</strong> です。</p>
+
+                <p>モデルが作られる<strong>前に</strong>、たった一つの問いに答えるために存在します。</p>
+
+                <blockquote>
+                    この判断を、AI に委ねてよいか？
+                </blockquote>
+
+                <p>このゲートはモデルを最適化するものではありません。<br>
+                    <strong>誤った予測による不可逆な失敗を防ぐ</strong> ためのものです。
+                </p>
+
+                <p>主な特徴：</p>
+
+                <ul>
+                    <li><strong>48〜72時間</strong> 以内に実行される</li>
+                    <li>PoC やモデリングの <strong>前に</strong> 適用される</li>
+                    <li><strong>精度ではなく責任</strong> に焦点を当てる</li>
+                    <li>明示的に <strong>「進めない」という判断</strong> を許可する</li>
+                </ul>
+
+                <p>Predictability Gate はブロッカーではありません。<br>
+                    運用、人、そして信頼を守るための <strong>安全境界（Safety Boundary）</strong> です。</p>
+
+                <hr>
+
+                <h3>文脈とルーツ</h3>
+                <p>このゲートは孤立したアイデアではありません。<br>
+                    境界と責任に関する長期的な思考から生まれた、運用上の成果物です。</p>
+
+                <p><strong>なぜこれらの境界が必要なのか</strong> を理解したい場合は、以下を参照してください：</p>
+
+                <ul>
+                    <li><strong>VCDesign</strong>(<a href="https://vcdesign.org/">https://vcdesign.org/</a>) — 境界指向の設計思想
+                    </li>
+                    <li><strong>idk-lamp</strong>(<a href="https://idk-lamp.org/">https://idk-lamp.org/</a>) — AI
+                        の判断を安全に止めるための象徴</li>
+                </ul>
+            </section>
+
+            <!-- Chapter 3: 02_gate_definition.ja.md -->
+            <section class="chapter" id="chapter-3">
+                <h1>3. Gate Definition</h1>
+
+                <p>Predictability Gate は、6つの評価項目（G1–G6）で構成されます。</p>
+
+                <h2>G1 — 情報量（Information Content）</h2>
+                <p>数値時系列データに、予測に足る十分なシグナルが含まれているか？</p>
+
+                <p>典型的な指標：</p>
+                <ul>
+                    <li>ターゲットのエントロピー</li>
+                    <li>相互情報量の総和（上位特徴量）</li>
+                </ul>
+
+                <hr>
+
+                <h2>G2 — 業務許容下限（Business Tolerance）</h2>
+                <p>予測が外れたときに、運用上の「逃げ道」があるか？</p>
+
+                <p>例：</p>
+                <ul>
+                    <li>安全側へのフォールバック</li>
+                    <li>判断の保留（Deferral）</li>
+                    <li>人間による確認</li>
+                </ul>
+
+                <hr>
+
+                <h2>G3 — 時序整合（Temporal Consistency）</h2>
+                <p>時間を考慮した検証下でも、結果は妥当か？</p>
+
+                <p>チェック項目：</p>
+                <ul>
+                    <li>時系列交差検証（Time-series cross validation）</li>
+                    <li>シャッフルによる劣化確認</li>
+                    <li>リークの疑い</li>
+                </ul>
+
+                <hr>
+
+                <h2>G4 — 代理変数の可能性（Proxy Feature Potential）</h2>
+                <p>代理変数を使って改善する余地があるか？</p>
+
+                <p>例：</p>
+                <ul>
+                    <li>ラグ特徴量</li>
+                    <li>滞留時間（Dwell time）</li>
+                    <li>比率</li>
+                    <li>ロールアップ</li>
+                </ul>
+
+                <hr>
+
+                <h2>G5 — 現場依存度＋不可逆性（Override）</h2>
+                <p><strong>見逃し（Miss）</strong> が不可逆な損害を引き起こすか？</p>
+
+                <p>Yes の場合：</p>
+                <blockquote>
+                    <strong>このケースは数値時系列 AI で扱ってはならない。</strong>
+                </blockquote>
+
+                <p>G5 は他のすべての項目に優先します（Override）。</p>
+
+                <hr>
+
+                <h2>G6 — 概算 ROI（Rough ROI）</h2>
+                <p>期待される便益は、運用コストに見合うか？</p>
+
+                <p>これは大まかなチェックであり、財務的な承認プロセスではありません。</p>
+            </section>
+
+            <!-- Chapter 4: 03_templates.ja.md -->
+            <section class="chapter" id="chapter-4">
+                <h1>4. Templates</h1>
+
+                <h2>Case Card (5 minutes)</h2>
+
+                <ul>
+                    <li>ライン / 設備:</li>
+                    <li>ターゲット KPI:</li>
+                    <li>評価期間:</li>
+                </ul>
+
+                <h3>Difficulty Map</h3>
+                <ul>
+                    <li>データ構造: S1 / S2 / S3</li>
+                    <li>現場依存度: D1 / D2 / D3</li>
+                </ul>
+
+                <p>初期分類:</p>
+                <ul>
+                    <li>数値時系列（Numeric time-series）</li>
+                    <li>条件付き（Conditional）</li>
+                    <li>別プロジェクト（Separate project）</li>
+                </ul>
+            </section>
+
+            <!-- Chapter 5: 04_scoring.ja.md -->
+            <section class="chapter" id="chapter-5">
+                <h1>5. Scoring Rules</h1>
+
+                <p>スコアはあくまで <strong>参考値（Reference only）</strong> です。</p>
+
+                <h2>絶対ルール（Absolute Rule）</h2>
+                <p>もし <strong>G5 = 不可逆な見逃し</strong> である場合、合計スコアに関わらずそのケースは却下されます。</p>
+
+                <p>スコアリングは議論を支援するために存在し、<br>
+                    責任を上書きするためではありません。</p>
+            </section>
+
+            <!-- Chapter 6: 05_irreversibility.ja.md -->
+            <section class="chapter" id="chapter-6">
+                <h1>6. Irreversibility</h1>
+                <p><strong>不可逆性</strong></p>
+
+                <p>不可逆な見逃し（Irreversible misses）には以下が含まれます：</p>
+
+                <h2>安全（Safety）</h2>
+                <ul>
+                    <li>挟まれ・巻き込まれ</li>
+                    <li>火傷</li>
+                    <li>漏洩</li>
+                    <li>暴走状態</li>
+                </ul>
+
+                <h2>品質（Quality）</h2>
+                <ul>
+                    <li>市場流出</li>
+                    <li>リコール</li>
+                    <li>ブランド毀損</li>
+                </ul>
+
+                <h2>法規制（Regulation）</h2>
+                <ul>
+                    <li>環境基準違反</li>
+                    <li>労働安全違反</li>
+                    <li>医療・食品コンプライアンス違反</li>
+                </ul>
+
+                <h2>資産（Assets）</h2>
+                <ul>
+                    <li>設備破壊</li>
+                    <li>長期ダウンタイム</li>
+                </ul>
+
+                <p>これらのリスクがログだけで軽減できない場合、<br>
+                    そのケースは分離されなければなりません。</p>
+            </section>
+
+            <!-- Chapter 7: 06_sop_numeric.ja.md -->
+            <section class="chapter" id="chapter-7">
+                <h1>7. SOP — Numeric Time-Series</h1>
+
+                <h2>Day 0</h2>
+                <ul>
+                    <li>ケースカード作成</li>
+                    <li>難易度マップ作成</li>
+                </ul>
+
+                <h2>Day 0–1</h2>
+                <ul>
+                    <li>データ抽出</li>
+                    <li>相互情報量（MI） / 交差検証（CV）準備</li>
+                </ul>
+
+                <h2>Day 1–3</h2>
+                <ul>
+                    <li>G1–G6 評価</li>
+                    <li>G5 オーバーライドチェック</li>
+                    <li>オペレーターコメント</li>
+                </ul>
+
+                <h2>Day 3</h2>
+                <ul>
+                    <li>判定レビュー</li>
+                </ul>
+            </section>
+
+            <!-- Chapter 8: 07_sop_non_structured.ja.md -->
+            <section class="chapter" id="chapter-8">
+                <h1>8. SOP — Non-Structured Data</h1>
+
+                <ol>
+                    <li>別プロジェクト化（Separate project）</li>
+                    <li>安全第一の設計（Safety-first design）</li>
+                    <li>限定パイロットのみ（Limited pilot only）</li>
+                    <li>安定性 KPI の承認（Stability KPI approval）</li>
+                    <li>オペレーターの承認（Operator sign-off）</li>
+                </ol>
+            </section>
+
+            <!-- Chapter 9: 08_consensus.ja.md -->
+            <section class="chapter" id="chapter-9">
+                <h1>9. Consensus Building</h1>
+
+                <p>これらから始める：</p>
+                <ul>
+                    <li>不可逆なリスク</li>
+                    <li>責任の設計</li>
+                </ul>
+
+                <p>これらから始めない：</p>
+                <ul>
+                    <li>精度</li>
+                    <li>モデル性能</li>
+                </ul>
+
+                <p>常に数字で締める：</p>
+                <ul>
+                    <li>劣化率</li>
+                    <li>再現性</li>
+                    <li>逃げ道（Escape routes）</li>
+                </ul>
+            </section>
+
+            <!-- Chapter 10: 09_handover_non_structured.ja.md -->
+            <section class="chapter" id="chapter-10">
+                <h1>10. Handover Boundary</h1>
+                <p><strong>Non-Structured Data Cases</strong></p>
+
+                <p>この文書は、非構造化データ（音、におい、画像、または人間の感覚的判断）への依存を理由に<br>
+                    <code>predictability-gate</code> から意図的に除外されたケースの <strong>引き継ぎ境界（handover boundary）</strong> を定義します。
+                </p>
+
+                <p>これは <strong>実装ガイドではありません</strong>。<br>
+                    責任がチーム間で移動する際に、不可逆な失敗を防ぐために存在します。</p>
+
+                <hr>
+
+                <h2>なぜこの引き継ぎが存在するか</h2>
+
+                <p>このケースが除外されたのは、<strong>難しいからではなく</strong>、以下の理由からです：</p>
+
+                <ul>
+                    <li>予測の見逃しが <strong>不可逆な実害</strong> を引き起こす可能性がある</li>
+                    <li>判断を安全に数値時系列だけに落とし込めない</li>
+                    <li>元のゲート内では責任を明確に強制できない</li>
+                </ul>
+
+                <p>この引き継ぎは、拒絶ではなく <strong>リスクを認識した移管（risk-aware transfer）</strong> です。</p>
+
+                <hr>
+
+                <h2>引き継ぎ前に確認されたこと</h2>
+
+                <p>このケースを分離する前に、以下が明示的に特定されました：</p>
+
+                <ul>
+                    <li>❌ 数値時系列だけでは、不可逆な見逃しを防げない</li>
+                    <li>❌ ログだけでは、安全なロールバックを保証できない</li>
+                    <li>❌ 構造化データと非構造化データを混ぜると、失敗モードが隠蔽される</li>
+                </ul>
+
+                <p>分離の判断は、<strong>モデル構築の前</strong> に行われました。</p>
+
+                <hr>
+
+                <h2>特定された不可逆リスク</h2>
+
+                <p>以下のカテゴリが、見逃した場合に不可逆となる可能性があるとしてフラグ付けされました：</p>
+
+                <h3>安全（Safety）</h3>
+                <p>挟まれ、火傷、漏洩、暴走状態</p>
+
+                <h3>品質（Quality）</h3>
+                <p>市場流出、リコール、ブランド毀損</p>
+
+                <h3>法規制（Regulation）</h3>
+                <p>環境基準違反、労働安全違反、医療・食品コンプライアンス違反</p>
+
+                <h3>資産（Assets）</h3>
+                <p>設備破壊、長期ダウンタイム</p>
+
+                <p>これらのリスクがログやアラーム単体で軽減できない場合、<br>
+                    そのケースを数値のみの扱いに戻してはなりません。</p>
+
+                <hr>
+
+                <h2>非構造化アプローチの前提条件</h2>
+
+                <p>モデリングやデータ収集を始める前に、<br>
+                    以下を <strong>明示的に定義しなければなりません</strong>：</p>
+
+                <h3>権限と制御（Authority & Control）</h3>
+                <ul>
+                    <li>誰が <strong>システムを止める権限</strong> を持っているか</li>
+                    <li>手動介入はいつ、どのようにトリガーされるか</li>
+                </ul>
+
+                <h3>ロールバック（Rollback）</h3>
+                <ul>
+                    <li>ロールバックは可能か</li>
+                    <li>ロールバックの目標状態は何か</li>
+                    <li>ロールバックにどれくらい時間がかかるか</li>
+                </ul>
+
+                <h3>冗長性（Redundancy）</h3>
+                <ul>
+                    <li><strong>二重検知（Double detection）</strong> が必要か</li>
+                    <li>検知器が一致しない場合、何が起きるか</li>
+                </ul>
+
+                <h3>スコープ制限（Scope limitation）</h3>
+                <ul>
+                    <li>初期の導入は <strong>制限されなければならない</strong>
+                        <ul>
+                            <li>シャドーモード</li>
+                            <li>限定されたライン</li>
+                            <li>限定された時間枠</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <blockquote>
+                    <strong>最初のステップとしてのフルスケール導入は禁止されています。</strong>
+                </blockquote>
+
+                <hr>
+
+                <h2>最低評価要件</h2>
+
+                <p>非構造化アプローチは、拡大を検討する前に<br>
+                    以下の <strong>すべて</strong> をパスしなければなりません：</p>
+
+                <ul>
+                    <li><strong>条件劣化率 ≤ 15%</strong></li>
+                    <li><strong>特徴再現性 ≥ 60%</strong></li>
+                    <li><strong>影響半径が明確に特定されている</strong>
+                        <ul>
+                            <li>どのラインか</li>
+                            <li>どのシフトか</li>
+                            <li>どの運用ユニットか</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <p>これらが実証できない場合、<br>
+                    システムは制限されたままか、停止されたままでなければなりません。</p>
+
+                <hr>
+
+                <h2>意図的に提供されないもの</h2>
+
+                <p>この引き継ぎには、以下は含まれません：</p>
+
+                <ul>
+                    <li>モデルアーキテクチャ</li>
+                    <li>特徴量抽出手法</li>
+                    <li>性能目標</li>
+                    <li>実装スケジュール</li>
+                </ul>
+
+                <p>これらは受け取り側チームの責任に属します。</p>
+
+                <p>この文書は解決策ではなく、<strong>リスクのコンテキスト</strong> を移管するものです。</p>
+
+                <hr>
+
+                <h2>責任表明</h2>
+
+                <p>この時点から先：</p>
+
+                <ul>
+                    <li>元の <code>predictability-gate</code> のスコープはここで終了します</li>
+                    <li>受け取り側チームが <strong>主要なリスクオーナー</strong> となります</li>
+                    <li>今後のすべての決定は、責任あるオペレーターを明示しなければなりません</li>
+                </ul>
+
+                <p>この引き継ぎは責任を免除するものではありません。<br>
+                    <strong>責任を明確に再割り当てする</strong> ものです。
+                </p>
+
+                <hr>
+
+                <h2>最後に</h2>
+
+                <p>回避は放棄ではありません。</p>
+
+                <p>この境界は、<br>
+                    非構造化データが <strong>慎重に、安全に、そして誠実に</strong> 扱われるために存在します。</p>
+
+                <p>もし責任や不可逆性が不明確になった場合、<br>
+                    正しい行動は <strong>止まって再評価すること</strong> です。</p>
+
+            </section>
+
+        </div>
+
+        <nav class="story-nav">
+            <a href="#prelude" class="story-dot" data-title="predictability-gate" aria-label="Jump to Introduction"></a>
+            <a href="#chapter-1" class="story-dot" data-title="1. Failure Cases" aria-label="Jump to Chapter 1"></a>
+            <a href="#chapter-2" class="story-dot" data-title="2. Overview" aria-label="Jump to Chapter 2"></a>
+            <a href="#chapter-3" class="story-dot" data-title="3. Gate Definition" aria-label="Jump to Chapter 3"></a>
+            <a href="#chapter-4" class="story-dot" data-title="4. Templates" aria-label="Jump to Chapter 4"></a>
+            <a href="#chapter-5" class="story-dot" data-title="5. Scoring Rules" aria-label="Jump to Chapter 5"></a>
+            <a href="#chapter-6" class="story-dot" data-title="6. Irreversibility" aria-label="Jump to Chapter 6"></a>
+            <a href="#chapter-7" class="story-dot" data-title="7. SOP (Numeric)" aria-label="Jump to Chapter 7"></a>
+            <a href="#chapter-8" class="story-dot" data-title="8. SOP (Non-Structured)"
+                aria-label="Jump to Chapter 8"></a>
+            <a href="#chapter-9" class="story-dot" data-title="9. Consensus" aria-label="Jump to Chapter 9"></a>
+            <a href="#chapter-10" class="story-dot" data-title="10. Handover" aria-label="Jump to Chapter 10"></a>
+        </nav>
+
+        <footer>
+            © 2026 idk-lamp
+        </footer>
+    </main>
+</body>
+
+</html>

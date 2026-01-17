@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ai-human-boundary - VCDesign</title>
+    <meta name="description"
+        content="A Boundary Guide for AI and Humans to Choose Value Together. Not about rules, but a guide for humans to stand outside the structure.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg-base: #0a0a0c;
+            --accent: #818CF8;
+            --text-main: #E2E8F0;
+            --text-muted: #94A3B8;
+            --link-hover-bg: rgba(129, 140, 248, 0.08);
+            --transition-fast: 0.18s ease-out;
+            --line-color: rgba(129, 140, 248, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, sans-serif;
+            /* Gothic Base */
+            line-height: 1.9;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Navigation */
+        .nav-back {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            transition: color var(--transition-fast);
+            z-index: 100;
+        }
+
+        .nav-back:hover {
+            color: var(--accent);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 680px;
+            width: 100%;
+            padding: 120px 24px 160px;
+            position: relative;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 80px 0 32px;
+            letter-spacing: 0.04em;
+            line-height: 1.4;
+            color: #fff;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 64px 0 24px;
+            letter-spacing: 0.03em;
+            color: #fff;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 48px 0 16px;
+            color: var(--text-main);
+        }
+
+        p {
+            margin-bottom: 24px;
+            color: var(--text-muted);
+            font-feature-settings: "palt";
+        }
+
+        ul {
+            padding-left: 20px;
+            margin-bottom: 32px;
+            color: var(--text-muted);
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        blockquote {
+            margin: 40px 0;
+            padding: 24px 32px;
+            border-left: 2px solid var(--accent);
+            background: rgba(129, 140, 248, 0.03);
+            font-style: italic;
+            color: var(--text-main);
+        }
+
+        strong {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        hr {
+            margin: 80px 0;
+            border: none;
+            height: 1px;
+            background: var(--line-color);
+        }
+
+        /* Story Dot Navigation */
+        .story-nav {
+            position: fixed;
+            right: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 100;
+        }
+
+        .story-dot {
+            width: 8px;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all var(--transition-fast);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .story-dot:hover,
+        .story-dot.active {
+            background-color: var(--accent);
+            transform: scale(1.2);
+        }
+
+        .story-dot::after {
+            content: attr(data-title);
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%) translateX(10px);
+            white-space: nowrap;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: all var(--transition-fast);
+        }
+
+        .story-dot:hover::after {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .chapter {
+            margin-bottom: 240px;
+            scroll-margin-top: 120px;
+        }
+
+        footer {
+            margin-top: 160px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            color: var(--text-muted);
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--line-color);
+        }
+
+        th {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 24px 0;
+            border: 1px solid var(--line-color);
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .story-nav {
+                display: none;
+            }
+
+            .container {
+                padding-top: 80px;
+            }
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('.chapter');
+            const dots = document.querySelectorAll('.story-dot');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '-40% 0px -40% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        dots.forEach(dot => {
+                            dot.classList.toggle('active', dot.getAttribute('href') === `#${id}`);
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => observer.observe(section));
+        });
+    </script>
+</head>
+
+<body>
+    <a href="/index.html" class="nav-back">← Back to Index</a>
+
+    <main class="container">
+
+        <div class="content">
+
+            <!-- Prelude: README.md -->
+            <section class="chapter" id="prelude">
+                <h1>ai-human-boundary</h1>
+
+                <p>🌿 <strong>A Boundary Guide for AI and Humans to Choose Value Together</strong></p>
+
+                <p>This repository is based on the premise not of:<br>
+                    <strong>AI → Human</strong><br>
+                    but of:<br>
+                    <strong>AI + Human → Value</strong>
+                </p>
+
+                <blockquote>
+                    When humans interact with AI,<br>
+                    things they should purely "know about boundaries"
+                </blockquote>
+
+                <p>It is intended to organize and record these minimum requirements.</p>
+
+                <hr>
+
+                <h2>What is this repository?</h2>
+                <p>This repository does NOT cover:</p>
+                <ul>
+                    <li>How to use AI smartly</li>
+                    <li>Design for delegating to AI</li>
+                    <li>Discussions on AI accuracy or performance</li>
+                </ul>
+                <p>It covers only one thing:</p>
+                <blockquote>
+                    <strong>When thinking together with AI,<br>
+                        from what point onwards should humans take over?</strong>
+                </blockquote>
+
+                <hr>
+
+                <h2>Premise: This is not "Design" but a "Guide"</h2>
+                <p>The content written here is:</p>
+                <ul>
+                    <li>Not rules</li>
+                    <li>Not implementation specifications</li>
+                    <li>Not meant to enforce judgment criteria</li>
+                </ul>
+                <p>This is <strong>a guide for understanding so that humans do not break in the AI era</strong>.</p>
+
+                <hr>
+
+                <h2>1. AI cannot "share uncertainty"</h2>
+                <p>Between humans, these things happen naturally:</p>
+                <ul>
+                    <li>Worrying together</li>
+                    <li>Betting together</li>
+                    <li>Holding anxiety together</li>
+                    <li>Shouldering responsibility together</li>
+                </ul>
+                <p>AI <strong>structurally cannot</strong> do these things.<br>
+                    AI can "handle" uncertainty, but it cannot <strong>share the burden of uncertainty</strong>.</p>
+                <p>Therefore,</p>
+                <blockquote>
+                    Backing uncertain choices is the role of humans.
+                </blockquote>
+
+                <hr>
+
+                <h2>2. AI's answers are polished but omit uncertainty</h2>
+                <p>AI's answers are:</p>
+                <ul>
+                    <li>Smooth</li>
+                    <li>Unwavering</li>
+                    <li>Plausible</li>
+                </ul>
+                <p>However, behind them, there is <strong>no inclusion</strong> of:</p>
+                <ul>
+                    <li>Hesitation</li>
+                    <li>Anxiety</li>
+                    <li>Betting</li>
+                    <li>Risk</li>
+                    <li>Responsibility</li>
+                </ul>
+                <p>When necessary, you need to recall the following fact:</p>
+                <blockquote>
+                    <strong>AI omits uncertainty</strong>
+                </blockquote>
+                <p>This is not a defect, but a property.</p>
+
+                <hr>
+
+                <h2>3. AI cannot decide for itself "whether to close the decision"</h2>
+                <p>AI cannot observe whether its output is:</p>
+                <ul>
+                    <li>Used as a reference</li>
+                    <li>Becoming the basis for action</li>
+                    <li>substituting someone's judgment</li>
+                </ul>
+                <p>Therefore, it <strong>must have as a structure</strong> conditions such as:</p>
+                <ul>
+                    <li>Cannot close if responsibility is dispersed</li>
+                    <li>Cannot close if it cannot be undone</li>
+                    <li>Cannot close if a social context arises</li>
+                </ul>
+                <p>This way of thinking is organized as **Decision Closure**.</p>
+
+                <hr>
+
+                <h2>4. Humans also need a "Not Known Lamp"</h2>
+                <p>There is a concept called idk-lamp for AI.<br>
+                    However, in reality, <strong>humans need it too</strong>.</p>
+                <ul>
+                    <li>Cannot judge right now</li>
+                    <li>Cannot decide right now</li>
+                    <li>Uncertainty is too large right now</li>
+                </ul>
+                <p>This is a signal to convey this to oneself and others.</p>
+                <blockquote>
+                    Humans being capable of saying "I don't know" is.<br>
+                    an important skill in the AI era.
+                </blockquote>
+
+                <hr>
+
+                <h2>5. AI proposals do not shoulder "responsibility for action"</h2>
+                <p>In the layer of action, there is only the following 3 axes:</p>
+                <ul>
+                    <li>Known / Unknown</li>
+                    <li>Acted on proposal as is / Human made a judgment</li>
+                    <li>Human themselves gave up</li>
+                </ul>
+                <p>In other words,</p>
+                <blockquote>
+                    <strong>Responsibility for action always lies with humans</strong>
+                </blockquote>
+                <p>AI cannot be an accomplice in action.</p>
+
+                <hr>
+
+                <h2>6. AI does not know "human values"</h2>
+                <p>AI possesses no value judgment.</p>
+                <ul>
+                    <li>What to cherish</li>
+                    <li>What not to lose</li>
+                    <li>What future to choose</li>
+                    <li>What risks to tolerate</li>
+                </ul>
+                <p>These are <strong>territories unique to humans</strong>.<br>
+                    AI can infer values, but it <strong>cannot share them</strong>.</p>
+
+                <hr>
+
+                <h2>7. AI is an aid, not a substitute</h2>
+                <p>AI can:</p>
+                <ul>
+                    <li>Provide materials for judgment</li>
+                    <li>Increase perspectives</li>
+                    <li>Organize thoughts</li>
+                </ul>
+                <p>However, it does:</p>
+                <ul>
+                    <li>Not push your back</li>
+                    <li>Not participate in the gamble</li>
+                    <li>Not hold responsibility</li>
+                </ul>
+                <p>That is precisely why,</p>
+                <blockquote>
+                    <strong>The final judgment should be closed by humans</strong>
+                </blockquote>
+                <p>Because that is not responsibility, but <strong>the act of choosing value</strong>.</p>
+
+                <hr>
+
+                <h2>Summary (Short version)</h2>
+                <p>To get along with AI,<br>
+                    these are the only minimum things humans should know:</p>
+                <ul>
+                    <li>AI cannot share uncertainty</li>
+                    <li>AI's answers omit uncertainty</li>
+                    <li>AI cannot decide for itself whether to close a decision</li>
+                    <li>Humans also need a "Not Known Lamp"</li>
+                    <li>Responsibility for action always lies with humans</li>
+                    <li>Value judgment is the human domain</li>
+                    <li>AI is an aid, not a substitute</li>
+                </ul>
+
+                <hr>
+
+                <h2>Positioning of this repository</h2>
+                <ul>
+                    <li>Decision Closure:<br>Structure that decides whether AI can close a judgment</li>
+                    <li>ai-human-boundary:<br>Guide for humans to choose value together with AI</li>
+                </ul>
+                <p>This repository deals with <strong>how humans stand outside the structure</strong>.</p>
+
+                <hr>
+
+                <h2>Status</h2>
+                <ul>
+                    <li>State: Draft / Living Document</li>
+                    <li>Purpose: Organization so as not to forget</li>
+                    <li>Implementation/UI: Out of scope</li>
+                </ul>
+
+                <hr>
+
+                <h3>Check the original</h3>
+                <p>This project is designed as a practical signal that marks<br>
+                    the boundary where AI systems must stop deciding<br>
+                    and defer responsibility to humans.</p>
+                <ul>
+                    <li><a href="https://idk-lamp.org/">idk-lamp (official site)</a></li>
+                </ul>
+                <p>This work originates from ongoing exploration of<br>
+                    design, responsibility, and boundaries<br>
+                    in AI-assisted systems.</p>
+                <ul>
+                    <li><a href="https://vcdesign.org/">VCDesign</a></li>
+                </ul>
+            </section>
+
+            <!-- Chapter 1: 00_overview.md -->
+            <section class="chapter" id="chapter-1">
+                <h1>1. Overall Picture</h1>
+                <p><strong>Overall Picture of the Boundary Between AI and Humans</strong></p>
+
+                <p>This document summarizes the overall picture of the "boundary" that **ai-human-boundary** deals with.
+                </p>
+                <p>While the README serves as the minimum guide at the "entrance,"<br>
+                    here we organize the <strong>structure</strong> behind it.</p>
+
+                <hr>
+
+                <h2>1. Overall Structure (Map of Layered Structure)</h2>
+                <p>When AI and humans choose value together,<br>
+                    the relationship becomes a multi-layered structure as follows:</p>
+
+                <p>Value (VCDesign)<br>
+                    ↓<br>
+                    Human Decision-Making Layer (Handling Uncertainty)<br>
+                    ├─ Human-side idk-lamp (Signal that decision cannot be closed)<br>
+                    └─ Metacognition of Uncertainty (AI omits uncertainty)<br>
+                    ↓<br>
+                    AI + Human → Action (Operation Layer)<br>
+                    ├─ Known / Unknown<br>
+                    ├─ Proposal as is / Human decided<br>
+                    └─ Human also gave up<br>
+                    ↓<br>
+                    Decision Closure (Whether AI can close the judgment)<br>
+                    ├─ 5 Steps (Responsibility / Cancellation / Reversibility / Chain / Social Context)<br>
+                    └─ Transition (Midway Reversal)<br>
+                    ↓<br>
+                    BOA (Boundary of the World)</p>
+
+                <p>What this repository covers is:<br>
+                    <strong>The layers above Decision Closure (Human Decision-Making Layer to Value)</strong>.
+                </p>
+
+                <hr>
+
+                <h2>2. Areas Covered by This Repository</h2>
+
+                <h3>◆ 2.1 Human Decision-Making Layer</h3>
+                <p>When AI and humans think together,<br>
+                    the following two structures are required on the human side.</p>
+
+                <h4>● Human-side idk-lamp</h4>
+                <ul>
+                    <li>Cannot judge right now</li>
+                    <li>Cannot decide right now</li>
+                    <li>Uncertainty is too large right now</li>
+                </ul>
+                <p>A signal to convey this to the surroundings.<br>
+                    Just as AI needed an idk-lamp, humans need the same thing.</p>
+
+                <h4>● Metacognition of Uncertainty</h4>
+                <p>AI's answers are smooth and polished, but<br>
+                    <strong>uncertainty is omitted</strong>.
+                </p>
+                <p>Therefore, when necessary, humans need to recall the fact that:</p>
+                <blockquote>
+                    "AI cannot share uncertainty"
+                </blockquote>
+
+                <h3>◆ 2.2 Action Layer (AI + Human → Action)</h3>
+                <p>Responsibility for action always lies with humans.<br>
+                    Its structure can be represented by the following 3 axes:</p>
+                <ol>
+                    <li><strong>Known / Unknown</strong></li>
+                    <li><strong>Acted on proposal as is / Human made a judgment</strong></li>
+                    <li><strong>Human themselves gave up</strong></li>
+                </ol>
+                <p>These 3 axes are<br>
+                    the "minimum structure" when AI and humans cooperate to act.</p>
+
+                <hr>
+
+                <h2>3. Relationship with Decision Closure</h2>
+                <p>Decision Closure (Judgment Circuit Structure) is<br>
+                    a structure to decide **whether AI can close the judgment**.</p>
+                <ul>
+                    <li>Is the responsible entity a single person?</li>
+                    <li>Does it not depend on psychological cancellation?</li>
+                    <li>Is it physically cancellable?</li>
+                    <li>Does the action not chain?</li>
+                    <li>Does it not carry social context?</li>
+                </ul>
+                <p>If these conditions collapse,<br>
+                    AI does not close the judgment and it becomes **Human-Closed**.</p>
+                <p>This repository deals with<br>
+                    <strong>the boundary of human decision-making</strong><br>
+                    that lies "outside" Decision Closure.
+                </p>
+
+                <hr>
+
+                <h2>4. Relationship with BOA (Boundary of the World)</h2>
+                <p>BOA is the layer that defines the "boundary of the world,"<br>
+                    determining the outer frame of how far AI can step in.</p>
+                <ul>
+                    <li>What is AI's responsibility?</li>
+                    <li>What is human responsibility?</li>
+                    <li>How far is AI's domain?</li>
+                </ul>
+                <p>Decision Closure rides on top of BOA,<br>
+                    and ai-human-boundary is positioned even above that.</p>
+
+                <hr>
+
+                <h2>5. Purpose of This Repository</h2>
+                <ul>
+                    <li>Organize the "boundary" for AI and humans to choose value together</li>
+                    <li>Leave a guide for understanding so that humans do not break in the AI era</li>
+                    <li>Clarify "human roles" outside of Decision Closure</li>
+                </ul>
+                <p>This is neither design nor specification,<br>
+                    but a **guide for humans**.</p>
+            </section>
+
+            <!-- Chapter 2: 01_human-idk-lamp.md -->
+            <section class="chapter" id="chapter-2">
+                <h1>2. Human-side idk-lamp</h1>
+                <p><strong>"idk-lamp" on the Human Side</strong></p>
+
+                <p>This document organizes the idea that<br>
+                    <strong>humans also need an idk-lamp (a signal that judgment cannot be closed)</strong>.
+                </p>
+                <p>Just as AI needed an idk-lamp,<br>
+                    humans in the AI era also need the same structure.</p>
+
+                <hr>
+
+                <h2>1. Why is a "Human-side idk-lamp" Necessary?</h2>
+                <p>When AI and humans think together,<br>
+                    humans are often placed in the following situations:</p>
+                <ul>
+                    <li>Have material for judgment, but cannot fully decide</li>
+                    <li>Uncertainty is too large</li>
+                    <li>Cannot read future impact</li>
+                    <li>The weight of responsibility is great</li>
+                    <li>Choice of value is involved</li>
+                </ul>
+                <p>However, humans often <strong>silently bottle this up</strong>.</p>
+                <p>As a result, problems such as:</p>
+                <ul>
+                    <li>Making a decision forcibly</li>
+                    <li>Adopting AI's proposal as is</li>
+                    <li>Pretending to "be able to do it" when actually unable to judge</li>
+                </ul>
+                <p>occur.</p>
+                <p>What is needed to prevent this is<br>
+                    the **Human-side idk-lamp**.</p>
+
+                <hr>
+
+                <h2>2. What the Human-side idk-lamp Indicates</h2>
+                <p>The human-side idk-lamp indicates the following states:</p>
+                <ul>
+                    <li>Cannot judge right now</li>
+                    <li>Cannot decide right now</li>
+                    <li>Uncertainty is too large right now</li>
+                    <li>Cannot assume responsibility right now</li>
+                    <li>Cannot decide the value of the choice right now</li>
+                </ul>
+                <p>This is not weakness, but<br>
+                    <strong>a signal to protect the soundness of decision-making</strong>.
+                </p>
+
+                <hr>
+
+                <h2>3. "Uncertainty" Naturally Shared Between Humans</h2>
+                <p>In conversations between humans,<br>
+                    uncertainty is naturally shared as "atmosphere".</p>
+                <ul>
+                    <li>The other person's hesitation</li>
+                    <li>The other person's anxiety</li>
+                    <li>The other person's sense of responsibility</li>
+                    <li>The other person's sense of betting</li>
+                    <li>The wavering of the other person's values</li>
+                </ul>
+                <p>These are conveyed without words.<br>
+                    Therefore, humans can <strong>make decisions while sharing uncertainty</strong>.</p>
+
+                <hr>
+
+                <h2>4. Uncertainty is Not Shared in Human + AI</h2>
+                <p>AI structurally cannot do the following:</p>
+                <ul>
+                    <li>Worry together</li>
+                    <li>Bet together</li>
+                    <li>Hold responsibility together</li>
+                    <li>Hold anxiety together</li>
+                    <li>Imagine the future together</li>
+                </ul>
+                <p>In other words, AI **cannot become an accomplice in uncertainty**.<br>
+                    Therefore, unless humans say "I don't know",<br>
+                    AI cannot recognize that uncertainty.</p>
+
+                <hr>
+
+                <h2>5. Roles Played by the Human-side idk-lamp</h2>
+                <p>The human-side idk-lamp has the following roles:</p>
+
+                <h3>● ① Signal to oneself</h3>
+                <p>Metacognition to recognize the fact<br>
+                    that "I cannot decide right now".</p>
+
+                <h3>● ② Signal to AI</h3>
+                <p>Convey to AI<br>
+                    that "it is not the stage to close the judgment".</p>
+
+                <h3>● ③ Signal to surroundings (humans)</h3>
+                <p>Share the state with the team and stakeholders<br>
+                    that "judgment should be suspended now".</p>
+
+                <h3>● ④ Prevent runaway responsibility</h3>
+                <p>A boundary to protect oneself<br>
+                    from the pressure to rush judgment.</p>
+
+                <hr>
+
+                <h2>6. When Should the "Human-side idk-lamp" be Lit?</h2>
+                <p>In the following situations,<br>
+                    the idk-lamp should be actively lit:</p>
+                <ul>
+                    <li>Basis for judgment is thin</li>
+                    <li>Future impact is large</li>
+                    <li>Choice of value is involved</li>
+                    <li>Own state is unstable</li>
+                    <li>Information is insufficient</li>
+                    <li>Responsibility is too heavy</li>
+                    <li>AI's answer is too smooth and anxious</li>
+                </ul>
+                <p>The last item is especially important.</p>
+                <blockquote>
+                    The more polished the AI's answer is,<br>
+                    the easier it is for humans to forget that "uncertainty is omitted".
+                </blockquote>
+
+                <hr>
+
+                <h2>7. Concrete Examples of Human-side idk-lamp Expressions</h2>
+                <p>This is not a rule,<br>
+                    but merely "examples of expression".</p>
+                <ul>
+                    <li>"I cannot judge right now"</li>
+                    <li>"I need a little more time to think"</li>
+                    <li>"I cannot handle this uncertainty myself"</li>
+                    <li>"Since this is a choice of value, I cannot decide immediately"</li>
+                    <li>"I suspend judgment"</li>
+                </ul>
+                <p>What is important is<br>
+                    <strong>not to be ashamed of stopping judgment</strong>.
+                </p>
+
+                <hr>
+
+                <h2>8. Relationship Between Human-side idk-lamp and Decision Closure</h2>
+                <p>Decision Closure is<br>
+                    a structure to decide **whether AI can close the judgment**.</p>
+                <p>Human-side idk-lamp is<br>
+                    a signal to decide **whether humans can close the judgment**.</p>
+                <p>Both complement each other as follows:</p>
+                <p>AI: Do not close judgments that should not be closed (Decision Closure)<br>
+                    Human: Do not close judgments that cannot be closed (human-idk-lamp)</p>
+                <p>Only when these two are present,<br>
+                    collaboration between AI and humans becomes sound.</p>
+            </section>
+
+            <!-- Chapter 3: 02_uncertainty.md -->
+            <section class="chapter" id="chapter-3">
+                <h1>3. Uncertainty</h1>
+                <p><strong>Handling Uncertainty</strong></p>
+
+                <p>This document organizes<br>
+                    <strong>"Uncertainty," which becomes most important when AI and humans think together</strong>.
+                </p>
+                <p>AI can "handle" uncertainty,<br>
+                    but it <strong>cannot "share" uncertainty</strong>.</p>
+
+                <hr>
+
+                <h2>1. What is Uncertainty?</h2>
+                <p>Uncertainty refers to the following states:</p>
+                <ul>
+                    <li>Cannot read the future</li>
+                    <li>Results are not guaranteed</li>
+                    <li>Material for judgment is not complete</li>
+                    <li>Choice of value is involved</li>
+                    <li>Risk does not become zero</li>
+                </ul>
+                <p>Human decision-making is<br>
+                    always conducted within this uncertainty.</p>
+
+                <hr>
+
+                <h2>2. Humans Can "Share Uncertainty"</h2>
+                <p>In decision-making between humans,<br>
+                    the following "sharing" naturally exists:</p>
+                <ul>
+                    <li>The other person is also hesitating</li>
+                    <li>The other person is also holding anxiety</li>
+                    <li>The other person is also feeling responsible</li>
+                    <li>The other person is also participating in the bet</li>
+                    <li>The other person also cannot read the future</li>
+                </ul>
+                <p>In other words, humans can become <strong>accomplices in uncertainty</strong>.<br>
+                    Because of this "complicity,"<br>
+                    humans can support each other in uncertain choices.</p>
+
+                <hr>
+
+                <h2>3. AI Cannot "Become an Accomplice in Uncertainty"</h2>
+                <p>AI structurally cannot do the following:</p>
+                <ul>
+                    <li>Worry together</li>
+                    <li>Bet together</li>
+                    <li>Hold responsibility together</li>
+                    <li>Hold anxiety together</li>
+                    <li>Imagine the future together</li>
+                </ul>
+                <p>AI can "calculate" uncertainty,<br>
+                    but it <strong>cannot "hold it together"</strong>.</p>
+                <p>Therefore, AI cannot step into the following areas:</p>
+                <ul>
+                    <li>Pushing someone's back</li>
+                    <li>Encouraging a bet</li>
+                    <li>Giving courage</li>
+                    <li>Sharing the risk</li>
+                </ul>
+                <p>These are all <strong>territories unique to humans</strong>.</p>
+
+                <hr>
+
+                <h2>4. AI's Answers "Omit Uncertainty"</h2>
+                <p>AI's answers are smooth and polished,<br>
+                    but behind them, the following are not included:</p>
+                <ul>
+                    <li>Hesitation</li>
+                    <li>Anxiety</li>
+                    <li>Betting</li>
+                    <li>Responsibility</li>
+                    <li>Values</li>
+                    <li>Fear of the future</li>
+                </ul>
+                <p>In other words, AI's answers are presented in a <strong>state where uncertainty has "dropped
+                        out"</strong>.<br>
+                    This is not a defect,<br>
+                    but <strong>a structural property of AI</strong>.</p>
+
+                <hr>
+
+                <h2>5. What Happens When Uncertainty is Omitted?</h2>
+                <p>When humans see AI's smooth answers,<br>
+                    they easily misunderstand as follows:</p>
+                <ul>
+                    <li>"This must be certain"</li>
+                    <li>"If there is no hesitation, it must be correct"</li>
+                    <li>"If AI says so, it must be okay"</li>
+                </ul>
+                <p>However, in reality,</p>
+                <blockquote>
+                    <strong>AI merely omits uncertainty,<br>
+                        and does not share the "weight" of that judgment.</strong>
+                </blockquote>
+                <p>This gap<br>
+                    jeopardizes human decision-making.</p>
+
+                <hr>
+
+                <h2>6. Handling Uncertainty is the Human's Role</h2>
+                <p>To handle uncertainty, the following elements are required:</p>
+                <ul>
+                    <li>Courage</li>
+                    <li>Values</li>
+                    <li>Responsibility</li>
+                    <li>Intuition</li>
+                    <li>Experience</li>
+                    <li>Preparedness for the future</li>
+                </ul>
+                <p>These are all <strong>capabilities unique to humans</strong>,<br>
+                    and not areas that AI can substitute.</p>
+                <p>That is precisely why,</p>
+                <blockquote>
+                    <strong>Judgment choosing uncertainty is a judgment that should be closed by humans</strong><br>
+                    and should not be closed by AI.
+                </blockquote>
+
+                <hr>
+
+                <h2>7. Uncertainty and "Human-side idk-lamp"</h2>
+                <p>When uncertainty is large,<br>
+                    humans enter the following states:</p>
+                <ul>
+                    <li>Cannot judge</li>
+                    <li>Cannot decide</li>
+                    <li>Scared of the future</li>
+                    <li>Heavy responsibility</li>
+                    <li>Insufficient information</li>
+                </ul>
+                <p>What is needed to indicate this state is<br>
+                    the <strong>Human-side idk-lamp</strong>.</p>
+
+                <hr>
+
+                <h2>8. Relationship Between Uncertainty and Decision Closure</h2>
+                <p>Decision Closure is<br>
+                    a structure to decide **whether AI can close the judgment**.</p>
+                <p>Judgments with large uncertainty<br>
+                    will inevitably collapse in one of the 5 steps of Decision Closure.</p>
+                <ul>
+                    <li>Responsibility is dispersed</li>
+                    <li>Cannot cancel</li>
+                    <li>Social context arises</li>
+                    <li>Action chains</li>
+                </ul>
+                <p>In other words,</p>
+                <blockquote>
+                    <strong>Judgments with large uncertainty are judgments AI must not close</strong>
+                </blockquote>
+                <p>This becomes the conclusion.</p>
+            </section>
+
+            <!-- Chapter 4: 03_action-layer.md -->
+            <section class="chapter" id="chapter-4">
+                <h1>4. Action Layer</h1>
+                <p><strong>3 Axes of Action Layer</strong></p>
+
+                <p>This document organizes<br>
+                    <strong>the "Action Layer," which is required when AI and humans cooperate to decide on
+                        actions</strong>.
+                </p>
+                <p>The Action Layer exists outside of Decision Closure,<br>
+                    and is the minimum structure for AI and humans to "choose value together".</p>
+
+                <hr>
+
+                <h2>1. What is the Action Layer?</h2>
+                <p>When AI and humans interact and try to decide something,<br>
+                    it eventually falls into **action**.<br>
+                    However, the responsibility for action always lies with humans.</p>
+                <p>Therefore, the following 3 axes exist in the Action Layer.</p>
+                <ul>
+                    <li>Known / Unknown</li>
+                    <li>Acted on proposal as is / Human decided</li>
+                    <li>Human themselves gave up</li>
+                </ul>
+                <p>These 3 axes are<br>
+                    the "minimum structure" when AI and humans collaborate.</p>
+
+                <hr>
+
+                <h2>2. Axis 1: Known / Unknown</h2>
+                <p>Knowledge related to action has<br>
+                    the following 2 types on the human side.</p>
+
+                <h3>● Known</h3>
+                <ul>
+                    <li>Know the procedure</li>
+                    <li>Have experience</li>
+                    <li>Understand what to do</li>
+                </ul>
+                <p>In this case, the role of AI is<br>
+                    close to <strong>recalling, organizing, and confirming</strong>.</p>
+
+                <h3>● Unknown</h3>
+                <ul>
+                    <li>Unfamiliar territory</li>
+                    <li>Do not know the procedure</li>
+                    <li>Insufficient material for judgment</li>
+                </ul>
+                <p>In this case, the AI's proposal<br>
+                    becomes <strong>a trigger for new action</strong>.</p>
+                <p>However, since action in unknown territory has<br>
+                    <strong>large uncertainty</strong>,<br>
+                    the final judgment must always be made by humans.
+                </p>
+
+                <hr>
+
+                <h2>3. Axis 2: Acted on Proposal as is / Human Decided</h2>
+                <p>Humans choose one of the following in response to AI's proposal.</p>
+
+                <h3>● Acted on proposal as is</h3>
+                <ul>
+                    <li>Adopt AI's proposal as is</li>
+                    <li>State where judgment was omitted</li>
+                    <li>Understanding of risk tends to be shallow</li>
+                </ul>
+
+                <h3>● Human decided</h3>
+                <ul>
+                    <li>Treat AI's proposal as material</li>
+                    <li>Choose with own values</li>
+                    <li>Assume responsibility for action oneself</li>
+                </ul>
+                <p>What is important is the point that:</p>
+                <blockquote>
+                    <strong>AI cannot shoulder responsibility for action</strong>
+                </blockquote>
+                <p>AI can propose,<br>
+                    but <strong>cannot share the weight of choice</strong>.</p>
+
+                <hr>
+
+                <h2>4. Axis 3: Human Themselves Gave Up</h2>
+                <p>The most important axis in the Action Layer.<br>
+                    Humans themselves may fall into the following states:</p>
+                <ul>
+                    <li>Cannot judge</li>
+                    <li>Cannot decide</li>
+                    <li>Uncertainty is too large</li>
+                    <li>Responsibility is too heavy</li>
+                    <li>Scared of the future</li>
+                </ul>
+                <p>This is not weakness,<br>
+                    but <strong>the natural limit of human decision-making</strong>.</p>
+                <p>This state is<br>
+                    the scene where the **human-side idk-lamp** should be lit.</p>
+                <p>And,</p>
+                <blockquote>
+                    <strong>A judgment where humans give up is<br>
+                        also a judgment that AI must not close.</strong>
+                </blockquote>
+
+                <hr>
+
+                <h2>5. What the 3 Axes of the Action Layer Indicate</h2>
+                <p>These 3 axes clarify<br>
+                    the "boundary" in collaboration between AI and humans.</p>
+                <ul>
+                    <li>Known / Unknown<br>→ Difficulty and uncertainty of action</li>
+                    <li>Proposal as is / Human decided<br>→ Subject of judgment and locus of responsibility</li>
+                    <li>Human also gave up<br>→ Human limits and necessity of idk-lamp</li>
+                </ul>
+                <p>By having these three,<br>
+                    collaboration between AI and humans becomes sound.</p>
+
+                <hr>
+
+                <h2>6. Relationship Between Action Layer and Decision Closure</h2>
+                <p>Decision Closure is<br>
+                    a structure to decide **whether AI can close the judgment**.</p>
+                <p>Action Layer is<br>
+                    **a structure for humans to assume action**.</p>
+                <p>Both complement each other as follows:</p>
+                <p>Decision Closure:<br>Remove judgments that AI must not close</p>
+                <p>Action Layer:<br>Prepare the minimum structure for humans to assume action</p>
+                <p>In other words, the relationship becomes:</p>
+                <blockquote>
+                    <strong>AI does not close<br>
+                        Humans assume<br>
+                        The Action Layer supports that boundary</strong>
+                </blockquote>
+            </section>
+
+            <!-- Chapter 5: 04_relationship-with-decision-closure.md -->
+            <section class="chapter" id="chapter-5">
+                <h1>5. Relationship with DC</h1>
+                <p><strong>Relationship with Decision Closure</strong></p>
+
+                <p>This document organizes the relationship between<br>
+                    <strong>ai-human-boundary (Boundary Guide for Humans)</strong> and<br>
+                    <strong>Decision Closure (Judgment Circuit Structure for AI)</strong>.
+                </p>
+                <p>Although they differ in purpose and the area they cover,<br>
+                    they are structured to complement each other.</p>
+
+                <hr>
+
+                <h2>1. First, the Conclusion: Not "Hierarchy" but "Difference in Role"</h2>
+                <p>ai-human-boundary:<br>
+                    How far humans assume (Values, Uncertainty, Limits of Judgment)</p>
+                <p>Decision Closure:<br>
+                    How far AI can step in (Whether judgment can be closed)</p>
+                <p>In other words, the relationship is:</p>
+                <ul>
+                    <li><strong>ai-human-boundary</strong> deals with the <strong>Human Boundary</strong></li>
+                    <li><strong>Decision Closure</strong> deals with the <strong>AI Boundary</strong></li>
+                </ul>
+                <p>It is not a matter of which is superior,<br>
+                    but <strong>collaboration between AI + Human is established only when both are present</strong>.</p>
+
+                <hr>
+
+                <h2>2. Differences in Areas Covered by Both</h2>
+
+                <h3>◆ Areas Covered by ai-human-boundary</h3>
+                <ul>
+                    <li>Human uncertainty</li>
+                    <li>Human-side idk-lamp</li>
+                    <li>Responsibility for action</li>
+                    <li>Choice of value</li>
+                    <li>Human limits</li>
+                    <li>Structure "outside" of collaboration between AI and humans</li>
+                </ul>
+                <p>This belongs to the **Human Decision-Making Layer**.</p>
+
+                <h3>◆ Areas Covered by Decision Closure</h3>
+                <ul>
+                    <li>Whether AI can close the judgment</li>
+                    <li>Locus of responsibility</li>
+                    <li>Reversibility</li>
+                    <li>Chain of action</li>
+                    <li>Social context</li>
+                    <li>Transition (Midway Reversal)</li>
+                </ul>
+                <p>This belongs to the **AI Judgment Circuit Layer**.</p>
+
+                <hr>
+
+                <h2>3. Diagramming the Boundary Between Both</h2>
+                <p>Value (VCDesign)<br>
+                    ↓<br>
+                    Human Decision-Making Layer (ai-human-boundary)<br>
+                    ├─ Human-side idk-lamp<br>
+                    ├─ Metacognition of Uncertainty<br>
+                    └─ 3 axes of Action Layer<br>
+                    ↓<br>
+                    AI Judgment Circuit Layer (Decision Closure)<br>
+                    ├─ 5 Steps<br>
+                    └─ Transition<br>
+                    ↓<br>
+                    BOA (Boundary of the World)</p>
+                <p>ai-human-boundary is **outside of Decision Closure**,<br>
+                    and deals with how humans stand.</p>
+                <p>Decision Closure is **inside AI**,<br>
+                    and deals with how far AI can step in.</p>
+
+                <hr>
+
+                <h2>4. Why Are Both Necessary?</h2>
+                <p>For AI and humans to collaborate,<br>
+                    the following two boundaries are necessary.</p>
+
+                <h3>● ① Boundary where AI must not step in</h3>
+                <p>→ Handled by Decision Closure<br>→ "AI must not close judgment here"</p>
+
+                <h3>● ② Boundary that humans should assume</h3>
+                <p>→ Handled by ai-human-boundary<br>→ "Humans decide from here on"</p>
+
+                <p>Only when these two are present,<br>
+                    collaboration between AI and humans becomes **safe, sound, and aligned with values**.</p>
+
+                <hr>
+
+                <h2>5. Relationship Between Both in One Word</h2>
+                <blockquote>
+                    <strong>Decision Closure is a structure for AI to "stop".</strong><br>
+                    <strong>ai-human-boundary is a structure for humans to "stand".</strong>
+                </blockquote>
+                <p>It is not enough for AI to just stop;<br>
+                    it is necessary for humans to stand somewhere.</p>
+
+                <hr>
+
+                <h2>6. Concrete Examples where Both Complement Each Other</h2>
+
+                <h3>● Case 1: Judgment with Large Uncertainty</h3>
+                <ul>
+                    <li>Human side: idk-lamp lit</li>
+                    <li>AI side: Decision Closure returns Human-Closed</li>
+                    <li>→ <strong>Both face the same direction</strong></li>
+                </ul>
+
+                <h3>● Case 2: Human Has Given Up</h3>
+                <ul>
+                    <li>Human side: Cannot judge</li>
+                    <li>AI side: Cannot close because responsibility is dispersed</li>
+                    <li>→ <strong>AI does not overstep human limits</strong></li>
+                </ul>
+
+                <h3>● Case 3: AI's Proposal is Too Smooth</h3>
+                <ul>
+                    <li>Human side: Metacognition of omitted uncertainty</li>
+                    <li>AI side: Social context arises and it cannot be closed</li>
+                    <li>→ <strong>Avoid false conviction</strong></li>
+                </ul>
+
+            </section>
+
+        </div>
+
+        <nav class="story-nav">
+            <a href="#prelude" class="story-dot" data-title="ai-human-boundary" aria-label="Jump to Introduction"></a>
+            <a href="#chapter-1" class="story-dot" data-title="1. Overall Picture" aria-label="Jump to Chapter 1"></a>
+            <a href="#chapter-2" class="story-dot" data-title="2. Human-side idk-lamp"
+                aria-label="Jump to Chapter 2"></a>
+            <a href="#chapter-3" class="story-dot" data-title="3. Uncertainty" aria-label="Jump to Chapter 3"></a>
+            <a href="#chapter-4" class="story-dot" data-title="4. Action Layer" aria-label="Jump to Chapter 4"></a>
+            <a href="#chapter-5" class="story-dot" data-title="5. Relationship with DC"
+                aria-label="Jump to Chapter 5"></a>
+        </nav>
+
+        <footer>
+            © 2026 idk-lamp
+        </footer>
+    </main>
+</body>
+
+</html>
